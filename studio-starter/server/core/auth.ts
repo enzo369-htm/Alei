@@ -75,8 +75,12 @@ export async function sessionValid(token: string | undefined) {
 }
 
 export async function isAuthed(request: Request) {
-  const token = parseCookies(request.headers.get('cookie'))[cookieName()]
-  return sessionValid(token)
+  try {
+    const token = parseCookies(request.headers.get('cookie'))[cookieName()]
+    return sessionValid(token)
+  } catch {
+    return false
+  }
 }
 
 function secureFlag() {
