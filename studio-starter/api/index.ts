@@ -1,3 +1,5 @@
+import { core } from '../server/core/index.ts'
+
 /**
  * Única función de Vercel del proyecto. El rewrite de `vercel.json` manda todo
  * `/api/*` acá con el path original en `__path`, y el router del core resuelve
@@ -12,7 +14,6 @@
 export default {
   fetch: async (request: Request) => {
     try {
-      const { core } = await import('../server/core/index.ts')
       const response = await core(request)
       const out = new Response(response.body, response)
       out.headers.set('x-studio-adapter', 'vercel')
