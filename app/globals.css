@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+html,
+body {
+  min-height: 100%;
+  background: #ffffff;
+  color: #000000;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+.canvas-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.canvas-note {
+  padding: 32px 24px;
+  color: #6d675f;
+}
+
+.canvas-text {
+  max-width: 40rem;
+  margin: 0 0 2.5rem;
+}
+
+.canvas-text h1 {
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+
+.canvas-text p {
+  margin: 0 0 12px;
+  line-height: 1.65;
+}
+
+.canvas-board {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.canvas-item {
+  position: absolute;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.canvas-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.canvas-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: #fff;
+  cursor: zoom-out;
+}
+
+.canvas-lightbox img {
+  display: block;
+  max-width: min(96vw, 1600px);
+  max-height: 92dvh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+body {
+  margin: 0;
+}
