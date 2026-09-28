@@ -294,7 +294,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
 
       {blocks.map((block, index) =>
         block.kind === 'text' ? (
-          <article key={block.id} className="admin-canvas-block">
+          <article key={block.id} className="admin-canvas-block admin-canvas-block--text">
             <div className="admin-canvas-block__bar">
               <p className="admin-login__kicker">Texto {index + 1}</p>
               <button

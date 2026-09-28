@@ -173,6 +173,25 @@
   opacity: 0.45;
 }
 
+.admin-canvas-block--text {
+  max-width: 40rem;
+}
+
+.admin-canvas-block--text .admin-login__label {
+  display: block;
+  margin: 14px 0 6px;
+}
+
+.admin-canvas-block--text .admin-login__input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-canvas-block--text .admin-textarea {
+  min-height: 10rem;
+}
+
 .admin-canvas-block__bar {
   display: flex;
   align-items: center;
