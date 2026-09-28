@@ -248,7 +248,7 @@ body {
   z-index: 40;
   max-width: none;
   margin: 0 -28px 18px;
-  padding: 14px 28px 16px;
+  padding: 10px 28px 12px;
   background: var(--admin-bg, #fff);
   box-shadow: 0 1px 0 var(--admin-line, #e4e0d8);
 }

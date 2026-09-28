@@ -259,7 +259,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             <textarea
               id="piece-ficha"
               className="admin-login__input admin-textarea"
-              rows={4}
+              rows={2}
               value={selectedPiece.ficha}
               onChange={(event) => patchSelected({ ficha: event.target.value })}
             />
