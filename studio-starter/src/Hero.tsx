@@ -28,6 +28,7 @@ export function Hero({ src }: { src: string }) {
   return (
     <div className="hero" onClick={handleClick}>
       <img src={src} alt="Painting by Alei" draggable={false} decoding="sync" />
+      <p className="hero__hint">clickea el cuadro</p>
       {flowers.map((flower) => (
         <span
           key={flower.id}

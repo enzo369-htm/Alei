@@ -78,6 +78,21 @@ body,
   object-position: center;
 }
 
+.hero__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 8;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #000000;
+  pointer-events: none;
+}
+
 .hero__flower {
   position: absolute;
   z-index: 10;
