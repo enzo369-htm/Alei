@@ -125,6 +125,20 @@
   color: var(--mute);
 }
 
+.admin-page--canvas .admin-canvas-block {
+  margin-top: 2rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.admin-page--canvas .studio-canvas,
+.admin-page--canvas .studio-canvas__board {
+  width: 100%;
+  max-width: none;
+}
+
 .admin-canvas-block {
   margin-top: 1.4rem;
   padding: 1rem;

@@ -1,15 +1,17 @@
 /* Estilos genéricos del admin. Sin marca de cliente: cambiá los tokens de :root. */
 
 :root {
-  --admin-bg: #f4f2ee;
+  --admin-bg: #ffffff;
   --admin-panel: #ffffff;
-  --admin-ink: #1c1a17;
+  --admin-ink: #161513;
   --admin-muted: #6d675f;
-  --admin-line: #ddd8d0;
-  --admin-accent: #1c1a17;
-  --admin-danger: #a32d1f;
-  --admin-radius: 10px;
-  --admin-nav-width: 220px;
+  --admin-line: #e4e0d8;
+  --admin-accent: #161513;
+  --admin-danger: #8c2020;
+  --admin-radius: 0;
+  --admin-nav-width: 13.5rem;
+  --admin-nav-bg: #161513;
+  --admin-nav-ink: #f6f4ef;
 }
 
 * {
@@ -89,38 +91,67 @@ body {
   color: var(--admin-danger);
 }
 
+.admin-btn,
 .admin-login__submit {
-  margin-top: 6px;
-  padding: 11px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 12px;
   font: inherit;
-  font-size: 15px;
-  color: var(--admin-panel);
-  background: var(--admin-accent);
-  border: 0;
-  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-ink);
+  background: transparent;
+  border: 1px solid var(--admin-line);
+  border-radius: 0;
   cursor: pointer;
 }
 
+.admin-btn:hover,
+.admin-login__submit:hover {
+  border-color: var(--admin-ink);
+}
+
+.admin-btn--primary,
+.admin-login__submit {
+  color: #ffffff;
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+}
+
+.admin-btn--ghost {
+  background: transparent;
+}
+
+.admin-btn--danger {
+  color: var(--admin-danger);
+  border-color: rgba(140, 32, 32, 0.35);
+}
+
+.admin-btn:disabled,
 .admin-login__submit:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: default;
 }
 
 /* Shell */
 
 .admin-app {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-columns: var(--admin-nav-width) 1fr;
+  grid-template-columns: var(--admin-nav-width) minmax(0, 1fr);
 }
 
 .admin-nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 24px 18px;
-  background: var(--admin-panel);
-  border-right: 1px solid var(--admin-line);
+  padding: 22px 16px 18px;
+  background: var(--admin-nav-bg);
+  color: var(--admin-nav-ink);
 }
 
 .admin-nav__kicker {
@@ -128,13 +159,14 @@ body {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--admin-muted);
+  color: rgba(246, 244, 239, 0.5);
 }
 
 .admin-nav__brand {
-  margin-bottom: 18px;
-  font-size: 17px;
-  font-weight: 500;
+  margin-bottom: 22px;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--admin-nav-ink);
 }
 
 .admin-nav__list {
@@ -145,20 +177,21 @@ body {
 
 .admin-nav__link {
   padding: 8px 10px;
-  font-size: 14px;
-  color: var(--admin-muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(246, 244, 239, 0.62);
   text-decoration: none;
-  border-radius: 7px;
 }
 
 .admin-nav__link:hover {
-  color: var(--admin-ink);
-  background: var(--admin-bg);
+  color: var(--admin-nav-ink);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .admin-nav__link.is-active {
   color: var(--admin-ink);
-  background: var(--admin-bg);
+  background: #ffffff;
   font-weight: 500;
 }
 
@@ -168,16 +201,31 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-top: 1px solid var(--admin-line);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .admin-nav__button {
   font: inherit;
-  font-size: 14px;
   text-align: left;
-  background: none;
-  border: 0;
   cursor: pointer;
+}
+
+.admin-canvas-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-canvas-head .admin-page__title {
+  margin: 0;
+}
+
+.admin-canvas-head .admin-actions {
+  margin-top: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .admin-app__main {
@@ -187,7 +235,7 @@ body {
 /* Páginas */
 
 .admin-page {
-  padding: 40px 32px;
+  padding: 36px 32px 64px;
   max-width: 720px;
 }
 
@@ -195,14 +243,15 @@ body {
   max-width: 1100px;
 }
 
+.admin-page--canvas {
+  max-width: none;
+  width: 100%;
+  padding: 28px 28px 72px;
+}
+
 .admin-upload {
-  display: inline-block;
-  margin: 8px 0 18px;
-  padding: 10px 14px;
-  font-size: 14px;
-  color: var(--admin-panel);
-  background: var(--admin-accent);
-  border-radius: 8px;
+  display: inline-flex;
+  margin: 0;
   cursor: pointer;
 }
 

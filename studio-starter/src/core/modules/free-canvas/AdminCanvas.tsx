@@ -156,45 +156,41 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   }
 
   return (
-    <main className="admin-page admin-page--wide">
-      <h1 className="admin-page__title">{heading}</h1>
-      <p className="admin-page__copy">
-        Módulo <code>free-canvas</code>: bloques de texto corto o lienzo libre. El demo usa el
-        scope <code>{scope}</code>. En un cliente, pasá otro scope (por ejemplo{' '}
-        <code>editorial-…</code>).
-      </p>
-
-      <div className="admin-actions">
-        <span className="admin-page__copy">{status}</span>
-        {selected && (
-          <button type="button" className="admin-media-grid__delete" onClick={onRemoveSelected}>
-            Quitar imagen
+    <main className="admin-page admin-page--wide admin-page--canvas">
+      <div className="admin-canvas-head">
+        <h1 className="admin-page__title">{heading}</h1>
+        <div className="admin-actions">
+          <span className="admin-page__copy">{status}</span>
+          {selected && (
+            <button type="button" className="admin-btn admin-btn--danger" onClick={onRemoveSelected}>
+              Quitar imagen
+            </button>
+          )}
+          <button
+            type="button"
+            className="admin-btn"
+            disabled={textCount >= MAX_PER_KIND}
+            onClick={() => void onAdd('text')}
+          >
+            Agregar texto
           </button>
-        )}
-        <button
-          type="button"
-          className="admin-nav__button"
-          disabled={textCount >= MAX_PER_KIND}
-          onClick={() => void onAdd('text')}
-        >
-          Agregar texto
-        </button>
-        <button
-          type="button"
-          className="admin-nav__button"
-          disabled={canvasCount >= MAX_PER_KIND}
-          onClick={() => void onAdd('canvas')}
-        >
-          Agregar lienzo
-        </button>
-        <button
-          type="button"
-          className="admin-login__submit"
-          disabled={saving || !loaded || !dirty}
-          onClick={() => void onSave()}
-        >
-          {saving ? 'Guardando…' : 'Guardar'}
-        </button>
+          <button
+            type="button"
+            className="admin-btn"
+            disabled={canvasCount >= MAX_PER_KIND}
+            onClick={() => void onAdd('canvas')}
+          >
+            Agregar lienzo
+          </button>
+          <button
+            type="button"
+            className="admin-btn admin-btn--primary"
+            disabled={saving || !loaded || !dirty}
+            onClick={() => void onSave()}
+          >
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
       </div>
 
       {error && <p className="admin-login__error">{error}</p>}
@@ -210,7 +206,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               <p className="admin-login__kicker">Texto {index + 1}</p>
               <button
                 type="button"
-                className="admin-media-grid__delete"
+                className="admin-btn admin-btn--danger"
                 onClick={() => void onRemove(block.id)}
               >
                 Quitar
@@ -253,7 +249,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             <div className="admin-canvas-block__bar">
               <p className="admin-login__kicker">Lienzo {index + 1}</p>
               <div className="admin-actions">
-                <label className={`admin-upload${uploading ? ' is-busy' : ''}`}>
+                <label className={`admin-btn admin-upload${uploading ? ' is-busy' : ''}`}>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -269,7 +265,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
                 </label>
                 <button
                   type="button"
-                  className="admin-media-grid__delete"
+                  className="admin-btn admin-btn--danger"
                   onClick={() => void onRemove(block.id)}
                 >
                   Quitar lienzo
