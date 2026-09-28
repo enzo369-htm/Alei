@@ -14,6 +14,8 @@ export function withDefaultPositions(items: CanvasItemInput[]): CanvasItem[] {
     const extras = {
       ...(item.media ? { media: item.media } : {}),
       ...(item.label ? { label: item.label } : {}),
+      ...(item.href ? { href: item.href } : {}),
+      ...(item.availability ? { availability: item.availability } : {}),
     }
 
     if (hasPosition(item)) {

@@ -228,6 +228,10 @@ body {
   justify-content: flex-end;
 }
 
+.admin-page--canvas .admin-piece-sheet {
+  max-width: none;
+}
+
 .admin-app__main {
   min-width: 0;
 }

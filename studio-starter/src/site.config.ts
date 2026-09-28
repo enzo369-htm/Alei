@@ -10,12 +10,12 @@ export type AdminLink = {
 
 export const site = {
   name: 'ALEI',
+  contactEmail: '',
 
   adminLinks: [
     { to: '/admin/hero', label: 'Hero' },
     { to: '/admin/works', label: 'Works' },
     { to: '/admin/colabs', label: 'Colabs' },
     { to: '/admin/about', label: 'About' },
-    { to: '/admin/media', label: 'Media' },
   ] as AdminLink[],
 }

@@ -43,18 +43,20 @@ export function CanvasPage({ scope }: Props) {
       {loaded && !error && blocks.length === 0 && (
         <p className="canvas-page__note">Todavía no hay bloques en este lienzo.</p>
       )}
-      {blocks.map((block) =>
-        block.kind === 'text' ? (
-          <article key={block.id} className="canvas-page__text">
-            {block.title ? <h1>{block.title}</h1> : null}
-            {block.body
-              ? block.body.split('\n\n').map((para, index) => <p key={index}>{para}</p>)
-              : null}
-          </article>
-        ) : (
-          <CanvasViewer key={block.id} items={piecesOf(block)} heightRatio={block.heightRatio} zoomOnClick />
-        ),
-      )}
+      {blocks
+        .filter((block) => scope !== 'works' || block.kind !== 'canvas' || block.visible !== false)
+        .map((block) =>
+          block.kind === 'text' ? (
+            <article key={block.id} className="canvas-page__text">
+              {block.title ? <h1>{block.title}</h1> : null}
+              {block.body
+                ? block.body.split('\n\n').map((para, index) => <p key={index}>{para}</p>)
+                : null}
+            </article>
+          ) : (
+            <CanvasViewer key={block.id} items={piecesOf(block)} heightRatio={block.heightRatio} />
+          ),
+        )}
     </main>
   )
 }

@@ -6,6 +6,7 @@ import {
   apiSaveCanvas,
   type CanvasBlock,
   type CanvasPiece,
+  type PieceAvailability,
 } from '../../api/canvas.ts'
 import { apiUploadMedia } from '../../api/media.ts'
 import { prepareVariants } from '../../images/prepareVariants.ts'
@@ -18,6 +19,30 @@ const MAX_PER_KIND = 4
 type Props = {
   scope: string
   heading?: string
+}
+
+function pieceOf(blocks: CanvasBlock[], selected: { canvasId: string; pieceId: string } | null) {
+  if (!selected) return null
+  return (
+    blocks.find((block) => block.id === selected.canvasId)?.pieces.find((piece) => piece.id === selected.pieceId) ??
+    null
+  )
+}
+
+function remapSelected(
+  previous: CanvasBlock[],
+  next: CanvasBlock[],
+  selected: { canvasId: string; pieceId: string } | null,
+) {
+  if (!selected) return null
+  const old = pieceOf(previous, selected)
+  const host = next.find((block) => block.id === selected.canvasId)
+  if (!old || !host) return null
+  const match =
+    host.pieces.find((piece) => piece.id === old.id) ??
+    host.pieces.find((piece) => piece.mediaId === old.mediaId && piece.x === old.x && piece.y === old.y) ??
+    host.pieces.find((piece) => piece.mediaId === old.mediaId)
+  return match ? { canvasId: selected.canvasId, pieceId: match.id } : null
 }
 
 export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
@@ -33,6 +58,27 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
 
   const textCount = blocks.filter((block) => block.kind === 'text').length
   const canvasCount = blocks.filter((block) => block.kind === 'canvas').length
+  const selectedPiece = pieceOf(blocks, selected)
+
+  function patchSelected(patch: Partial<Pick<CanvasPiece, 'title' | 'ficha' | 'availability'>>) {
+    if (!selected) return
+    markDirty(
+      blocks.map((block) =>
+        block.id !== selected.canvasId
+          ? block
+          : {
+              ...block,
+              pieces: block.pieces.map((piece) =>
+                piece.id === selected.pieceId ? { ...piece, ...patch } : piece,
+              ),
+            },
+      ),
+    )
+  }
+
+  function setAvailability(availability: PieceAvailability) {
+    patchSelected({ availability })
+  }
 
   const refresh = useCallback(async () => {
     const data = await apiGetCanvas(scope)
@@ -62,6 +108,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     setStatus('Guardando…')
     try {
       const saved = await apiSaveCanvas(scope, blocks)
+      setSelected((current) => remapSelected(blocks, saved.blocks, current))
       setBlocks(saved.blocks)
       setDirty(false)
       setStatus('Guardado')
@@ -137,6 +184,9 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           y: pos.y,
           width: pos.width,
           z: host?.pieces.length ?? 0,
+          title: '',
+          ficha: '',
+          availability: 'available',
         }
         pieceId = piece.id
         return prev.map((block) =>
@@ -193,6 +243,49 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
         </div>
       </div>
 
+      {selectedPiece && (
+        <div className="admin-piece-sheet">
+          <label className="admin-login__label" htmlFor="piece-title">
+            Título
+            <input
+              id="piece-title"
+              className="admin-login__input"
+              value={selectedPiece.title}
+              onChange={(event) => patchSelected({ title: event.target.value })}
+            />
+          </label>
+          <label className="admin-login__label" htmlFor="piece-ficha">
+            Ficha técnica
+            <textarea
+              id="piece-ficha"
+              className="admin-login__input admin-textarea"
+              rows={4}
+              value={selectedPiece.ficha}
+              onChange={(event) => patchSelected({ ficha: event.target.value })}
+            />
+          </label>
+          <div className="admin-piece-sheet__avail">
+            <p className="admin-login__label">Estado</p>
+            <div className="admin-actions">
+              <button
+                type="button"
+                className={`admin-btn${selectedPiece.availability === 'available' ? ' admin-btn--primary' : ''}`}
+                onClick={() => setAvailability('available')}
+              >
+                Available
+              </button>
+              <button
+                type="button"
+                className={`admin-btn${selectedPiece.availability === 'sold' ? ' admin-btn--primary' : ''}`}
+                onClick={() => setAvailability('sold')}
+              >
+                Sold
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && <p className="admin-login__error">{error}</p>}
 
       {loaded && blocks.length === 0 && !error && (
@@ -245,10 +338,28 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             />
           </article>
         ) : (
-          <article key={block.id} className="admin-canvas-block">
+          <article
+            key={block.id}
+            className={`admin-canvas-block${scope === 'works' && block.visible === false ? ' is-hidden' : ''}`}
+          >
             <div className="admin-canvas-block__bar">
               <p className="admin-login__kicker">Lienzo {index + 1}</p>
               <div className="admin-actions">
+                {scope === 'works' && (
+                  <button
+                    type="button"
+                    className={`admin-btn${block.visible !== false ? ' admin-btn--primary' : ''}`}
+                    onClick={() =>
+                      markDirty(
+                        blocks.map((item) =>
+                          item.id === block.id ? { ...item, visible: item.visible === false } : item,
+                        ),
+                      )
+                    }
+                  >
+                    {block.visible === false ? 'Oculto' : 'Visible'}
+                  </button>
+                )}
                 <label className={`admin-btn admin-upload${uploading ? ' is-busy' : ''}`}>
                   <input
                     type="file"

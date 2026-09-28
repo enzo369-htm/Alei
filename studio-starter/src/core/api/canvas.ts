@@ -1,6 +1,8 @@
 import type { MediaRecord } from '../images/types.ts'
 import { request } from './client.ts'
 
+export type PieceAvailability = 'available' | 'sold'
+
 export type CanvasPiece = {
   id: string
   mediaId: string
@@ -9,6 +11,9 @@ export type CanvasPiece = {
   y: number
   width: number
   z: number
+  title: string
+  ficha: string
+  availability: PieceAvailability
   media: MediaRecord | null
 }
 
@@ -19,6 +24,7 @@ export type CanvasBlock = {
   body: string
   sortOrder: number
   heightRatio: number
+  visible: boolean
   pieces: CanvasPiece[]
 }
 

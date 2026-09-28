@@ -8,6 +8,8 @@ export type CanvasItem = {
   y: number
   width: number
   label?: string
+  href?: string
+  availability?: 'available' | 'sold'
 }
 
 export type CanvasItemInput = {
@@ -18,4 +20,6 @@ export type CanvasItemInput = {
   y?: number | null
   width?: number | null
   label?: string
+  href?: string
+  availability?: 'available' | 'sold'
 }

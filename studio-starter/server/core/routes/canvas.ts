@@ -1,6 +1,6 @@
 import type { MediaRecord } from '../../../src/core/images/types.ts'
 import { isCanvasScope } from '../canvas-scope.ts'
-import { mediaIdsOf, parseCanvasPut, type ParsedBlock } from '../canvas-put.ts'
+import { mediaIdsOf, parseCanvasPut, type ParsedBlock, type PieceAvailability } from '../canvas-put.ts'
 import { isAuthed } from '../auth.ts'
 import { hasDatabase, sql } from '../db.ts'
 import { asText, fail, isUuid, json, notFound, readJson, unauthorized } from '../http.ts'
@@ -17,6 +17,7 @@ type CanvasRow = {
   body: string
   sort_order: number
   height_ratio: number
+  visible: boolean
 }
 
 type PlacementRow = {
@@ -27,6 +28,9 @@ type PlacementRow = {
   y: number
   width: number
   z_index: number
+  title: string
+  ficha: string
+  availability: PieceAvailability
   url: string | null
   media_width: number | null
   media_height: number | null
@@ -42,6 +46,9 @@ export type CanvasPiece = {
   y: number
   width: number
   z: number
+  title: string
+  ficha: string
+  availability: PieceAvailability
   media: MediaRecord | null
 }
 
@@ -52,6 +59,7 @@ export type CanvasBlock = {
   body: string
   sortOrder: number
   heightRatio: number
+  visible: boolean
   pieces: CanvasPiece[]
 }
 
@@ -77,6 +85,9 @@ function pieceOf(row: PlacementRow): CanvasPiece {
     y: row.y,
     width: row.width,
     z: row.z_index,
+    title: row.title ?? '',
+    ficha: row.ficha ?? '',
+    availability: row.availability === 'sold' ? 'sold' : 'available',
     media,
   }
 }
@@ -89,6 +100,7 @@ function blockOf(row: CanvasRow, pieces: CanvasPiece[]): CanvasBlock {
     body: row.body,
     sortOrder: row.sort_order,
     heightRatio: row.height_ratio,
+    visible: row.visible !== false,
     pieces,
   }
 }
@@ -102,7 +114,7 @@ function scopeOr400(raw: string | undefined) {
 async function loadScope(scope: string) {
   const db = sql()
   const canvases = (await db`
-    select id, scope, kind, title, body, sort_order, height_ratio
+    select id, scope, kind, title, body, sort_order, height_ratio, visible
     from canvases
     where scope = ${scope}
     order by sort_order, created_at
@@ -111,6 +123,7 @@ async function loadScope(scope: string) {
   const placements = (await db`
     select
       p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
+      p.title, p.ficha, p.availability,
       m.url, m.width as media_width, m.height as media_height,
       m.mime, m.variants
     from canvas_placements p
@@ -138,17 +151,41 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
     select id from canvas_placements where canvas_id = ${block.id}
   `) as { id: string }[]
 
+  const previousIds = new Set(previous.map((row) => row.id))
+  const kept = new Set<string>()
   let z = 0
   for (const piece of block.pieces) {
-    await db`
-      insert into canvas_placements (canvas_id, media_id, x, y, width, z_index)
-      values (${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z})
-    `
+    if (piece.id && previousIds.has(piece.id)) {
+      await db`
+        update canvas_placements
+        set
+          media_id = ${piece.mediaId},
+          x = ${piece.x},
+          y = ${piece.y},
+          width = ${piece.width},
+          z_index = ${z},
+          title = ${piece.title},
+          ficha = ${piece.ficha},
+          availability = ${piece.availability}
+        where id = ${piece.id} and canvas_id = ${block.id}
+      `
+      kept.add(piece.id)
+    } else {
+      await db`
+        insert into canvas_placements (
+          canvas_id, media_id, x, y, width, z_index, title, ficha, availability
+        )
+        values (
+          ${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z},
+          ${piece.title}, ${piece.ficha}, ${piece.availability}
+        )
+      `
+    }
     z += 1
   }
 
   for (const row of previous) {
-    await db`delete from canvas_placements where id = ${row.id}`
+    if (!kept.has(row.id)) await db`delete from canvas_placements where id = ${row.id}`
   }
 }
 
@@ -186,7 +223,7 @@ export const canvasRoutes = [
         ${kind},
         (select coalesce(max(sort_order), -1) + 1 from canvases where scope = ${scope})
       )
-      returning id, scope, kind, title, body, sort_order, height_ratio
+      returning id, scope, kind, title, body, sort_order, height_ratio, visible
     `) as CanvasRow[]
     if (!inserted[0]) return fail(500, 'No se pudo crear el bloque')
     return json({ block: blockOf(inserted[0], []) })
@@ -220,6 +257,7 @@ export const canvasRoutes = [
           title = ${block.title},
           body = ${block.body},
           height_ratio = ${block.heightRatio},
+          visible = ${block.visible},
           sort_order = ${sortOrder}
         where id = ${block.id} and scope = ${scope}
       `

@@ -2,7 +2,7 @@
 
 Módulo de **lienzo libre** + **texto corto**. En el motor viene cableado como demo (`/canvas`), igual que Editorial y Bio. Si un cliente no lo usa, se sacan las rutas y el link; `rsync --exclude modules` **no** lo apaga.
 
-No es una receta. No hay ficha de obra, i18n, hero ni tabla `sections`. Un `scope` (texto tipo slug, p. ej. `demo` o `editorial-…`) agrupa los bloques de una pantalla.
+No es una receta. No hay i18n, hero ni tabla `sections`. Cada pieza puede llevar título, ficha y Available/Sold. Un `scope` (texto tipo slug, p. ej. `demo` o `works`) agrupa los bloques de una pantalla.
 
 ## Qué hay
 
@@ -42,10 +42,8 @@ Máximo 4 bloques de cada kind por scope (el conteo es de app; dos POST a la vez
 
 ## Qué no trae (a propósito)
 
-- `ficha` / `fichaEn` / `portrait_scale`
 - i18n
 - CRUD de exposiciones
 - FK a `sections`
-- Zoom con ficha al costado
 
 Si el artista no usa lienzo: borrá las rutas `/canvas`, el link del admin, y (si nadie más las usa) las tablas `canvases` / `canvas_placements`.
