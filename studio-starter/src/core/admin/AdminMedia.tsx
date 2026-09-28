@@ -75,8 +75,9 @@ export function AdminMedia() {
     <main className="admin-page admin-page--wide">
       <h1 className="admin-page__title">Media</h1>
       <p className="admin-page__copy">
-        Subí una foto: el browser arma las variantes (480 / 1400 / 3000) y el servidor
-        las guarda en R2. Usá <code>&lt;Picture&gt;</code> en el sitio para el srcset.
+        Archivo de todas las fotos (hero, works, colabs). No hace falta pasar por acá
+        para publicar: subís desde cada sección. Acá se ve todo junto y se puede borrar.
+        Borrar acá también la saca del sitio.
       </p>
 
       <label className={`admin-upload${busy ? ' is-busy' : ''}`}>

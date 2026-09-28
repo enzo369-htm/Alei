@@ -2,6 +2,7 @@ import { createRouter, type Route } from './router.ts'
 import { authRoutes } from './routes/auth.ts'
 import { canvasRoutes } from './routes/canvas.ts'
 import { editorialRoutes } from './routes/editorial.ts'
+import { heroRoutes } from './routes/hero.ts'
 import { mediaRoutes } from './routes/media.ts'
 import { pageRoutes } from './routes/pages.ts'
 
@@ -15,6 +16,7 @@ const routes: Route[] = [
   ...editorialRoutes,
   ...pageRoutes,
   ...canvasRoutes,
+  ...heroRoutes,
 ]
 
 const handle = createRouter(routes)

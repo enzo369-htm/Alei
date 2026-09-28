@@ -1,11 +1,12 @@
-export const HERO_IMAGES = ['/hero/hero-01.jpg'] as const
+export const HERO_FALLBACK = '/hero/hero-01.jpg'
 
 export const HERO_COOKIE = 'alei-hero-index'
 
 export function nextHeroIndex(
   lastIndex: number | undefined,
-  count: number = HERO_IMAGES.length,
+  count: number,
 ): number {
+  if (count <= 0) return 0
   if (lastIndex === undefined || !Number.isFinite(lastIndex) || lastIndex < 0) {
     return 0
   }
@@ -23,8 +24,9 @@ export function writeHeroIndex(index: number) {
   document.cookie = `${HERO_COOKIE}=${index}; path=/; max-age=31536000; SameSite=Lax`
 }
 
-export function pickHeroSrc() {
-  const index = nextHeroIndex(readHeroIndex())
+export function pickHeroSrc(urls: string[]) {
+  if (urls.length === 0) return HERO_FALLBACK
+  const index = nextHeroIndex(readHeroIndex(), urls.length)
   writeHeroIndex(index)
-  return HERO_IMAGES[index]
+  return urls[index] ?? HERO_FALLBACK
 }

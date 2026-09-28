@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { AdminCanvas } from '../modules/free-canvas/AdminCanvas'
 import { AdminPageEditor } from '../recipes/base-page/AdminPageEditor'
 import { AdminGate } from './AdminGate'
+import { AdminHero } from './AdminHero'
 import { AdminMedia } from './AdminMedia'
 import { AdminShell } from './AdminShell'
 import { site } from '../../site.config'
@@ -12,7 +13,7 @@ function AdminEmptyState() {
     <main className="admin-page">
       <h1 className="admin-page__title">Admin</h1>
       <p className="admin-page__copy">
-        Media, Works, Colabs y About. Se publican en esta misma web.
+        Hero, Works, Colabs y About. Media es el archivo de fotos (borrar, ver todo).
       </p>
       {site.adminLinks.length === 0 && (
         <p className="admin-page__hint">Sin secciones registradas.</p>
@@ -27,6 +28,7 @@ export function AdminPage() {
       <Route element={<AdminGate />}>
         <Route element={<AdminShell />}>
           <Route index element={<AdminEmptyState />} />
+          <Route path="hero" element={<AdminHero />} />
           <Route path="media" element={<AdminMedia />} />
           <Route path="works" element={<AdminCanvas scope="works" heading="Works" />} />
           <Route path="colabs" element={<AdminCanvas scope="colabs" heading="Colabs" />} />

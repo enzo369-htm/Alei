@@ -152,3 +152,16 @@ test('DELETE /api/canvas/demo/id-inválido es 400', async () => {
   const res = await authed('http://localhost/api/canvas/demo/no-es-uuid', 'DELETE')
   assert.equal(res.status, 400)
 })
+
+test('GET /api/hero sin DATABASE_URL es 503', async () => {
+  const prev = process.env.DATABASE_URL
+  delete process.env.DATABASE_URL
+  const res = await core(new Request('http://localhost/api/hero'))
+  if (prev) process.env.DATABASE_URL = prev
+  assert.equal(res.status, 503)
+})
+
+test('PUT /api/hero sin sesión es 401', async () => {
+  const res = await core(new Request('http://localhost/api/hero', { method: 'PUT', body: '{}' }))
+  assert.equal(res.status, 401)
+})
