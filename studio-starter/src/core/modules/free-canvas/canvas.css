@@ -202,6 +202,12 @@
   border-bottom: 1px solid var(--admin-line, #e4e0d8);
 }
 
+.admin-piece-sheet .admin-login__label,
+.admin-piece-sheet .admin-login__input,
+.admin-piece-sheet .admin-textarea {
+  max-width: 40rem;
+}
+
 .admin-piece-sheet .admin-login__label {
   display: flex;
   flex-direction: column;
