@@ -17,7 +17,7 @@ export function r2Client() {
 }
 
 export function publicUrlFor(key: string) {
-  const base = requireEnv('R2_PUBLIC_BASE_URL').replace(/\/$/, '')
+  const base = requireEnv('R2_PUBLIC_BASE_URL').trim().replace(/\/+$/, '')
   return `${base}/${key}`
 }
 

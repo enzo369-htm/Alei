@@ -772,7 +772,7 @@ function r2Client() {
   });
 }
 function publicUrlFor(key) {
-  const base = requireEnv("R2_PUBLIC_BASE_URL").replace(/\/$/, "");
+  const base = requireEnv("R2_PUBLIC_BASE_URL").trim().replace(/\/+$/, "");
   return `${base}/${key}`;
 }
 async function uploadToR2(key, body, contentType) {
