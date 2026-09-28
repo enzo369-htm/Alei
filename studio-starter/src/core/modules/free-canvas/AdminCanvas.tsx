@@ -307,35 +307,35 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             </div>
             <label className="admin-login__label" htmlFor={`canvas-title-${block.id}`}>
               Título
+              <input
+                id={`canvas-title-${block.id}`}
+                className="admin-login__input"
+                value={block.title}
+                onChange={(event) =>
+                  markDirty(
+                    blocks.map((item) =>
+                      item.id === block.id ? { ...item, title: event.target.value } : item,
+                    ),
+                  )
+                }
+              />
             </label>
-            <input
-              id={`canvas-title-${block.id}`}
-              className="admin-login__input"
-              value={block.title}
-              onChange={(event) =>
-                markDirty(
-                  blocks.map((item) =>
-                    item.id === block.id ? { ...item, title: event.target.value } : item,
-                  ),
-                )
-              }
-            />
             <label className="admin-login__label" htmlFor={`canvas-body-${block.id}`}>
               Texto
+              <textarea
+                id={`canvas-body-${block.id}`}
+                className="admin-login__input admin-textarea"
+                rows={8}
+                value={block.body}
+                onChange={(event) =>
+                  markDirty(
+                    blocks.map((item) =>
+                      item.id === block.id ? { ...item, body: event.target.value } : item,
+                    ),
+                  )
+                }
+              />
             </label>
-            <textarea
-              id={`canvas-body-${block.id}`}
-              className="admin-login__input admin-textarea"
-              rows={4}
-              value={block.body}
-              onChange={(event) =>
-                markDirty(
-                  blocks.map((item) =>
-                    item.id === block.id ? { ...item, body: event.target.value } : item,
-                  ),
-                )
-              }
-            />
           </article>
         ) : (
           <article

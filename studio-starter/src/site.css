@@ -109,6 +109,19 @@ body,
   font-family: inherit;
 }
 
+.site .canvas-page {
+  max-width: none;
+  margin: 0;
+  padding: 48px 50px;
+  text-align: left;
+}
+
+.site .canvas-page__text {
+  max-width: 40rem;
+  margin: 0 0 2.5rem;
+  text-align: left;
+}
+
 .artwork {
   display: grid;
   grid-template-columns: 1fr 1fr;

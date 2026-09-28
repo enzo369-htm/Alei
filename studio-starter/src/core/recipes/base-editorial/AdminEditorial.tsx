@@ -152,38 +152,38 @@ export function AdminEditorial() {
 
         <label className="admin-login__label" htmlFor="editorial-title">
           Título
+          <input
+            id="editorial-title"
+            className="admin-login__input"
+            value={draft.title}
+            disabled={busy}
+            onChange={(event) => setDraft((prev) => ({ ...prev, title: event.target.value }))}
+          />
         </label>
-        <input
-          id="editorial-title"
-          className="admin-login__input"
-          value={draft.title}
-          disabled={busy}
-          onChange={(event) => setDraft((prev) => ({ ...prev, title: event.target.value }))}
-        />
 
         <label className="admin-login__label" htmlFor="editorial-excerpt">
           Bajada (lista)
+          <textarea
+            id="editorial-excerpt"
+            className="admin-login__input admin-textarea"
+            rows={3}
+            value={draft.excerpt}
+            disabled={busy}
+            onChange={(event) => setDraft((prev) => ({ ...prev, excerpt: event.target.value }))}
+          />
         </label>
-        <textarea
-          id="editorial-excerpt"
-          className="admin-login__input admin-textarea"
-          rows={3}
-          value={draft.excerpt}
-          disabled={busy}
-          onChange={(event) => setDraft((prev) => ({ ...prev, excerpt: event.target.value }))}
-        />
 
         <label className="admin-login__label" htmlFor="editorial-body">
           Texto completo
+          <textarea
+            id="editorial-body"
+            className="admin-login__input admin-textarea"
+            rows={12}
+            value={draft.body}
+            disabled={busy}
+            onChange={(event) => setDraft((prev) => ({ ...prev, body: event.target.value }))}
+          />
         </label>
-        <textarea
-          id="editorial-body"
-          className="admin-login__input admin-textarea"
-          rows={12}
-          value={draft.body}
-          disabled={busy}
-          onChange={(event) => setDraft((prev) => ({ ...prev, body: event.target.value }))}
-        />
 
         <p className="admin-login__label">Portada</p>
         {draft.cover && (

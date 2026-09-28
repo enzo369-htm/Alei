@@ -72,7 +72,7 @@
   position: relative;
   display: block;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .studio-viewer__item {
@@ -100,25 +100,14 @@
 }
 
 .studio-viewer__status {
-  position: absolute;
-  left: 8px;
-  bottom: 8px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: #000;
+  display: block;
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #9a9a9a;
+  text-align: center;
   pointer-events: none;
-  opacity: 0;
-}
-
-.studio-viewer__item:hover .studio-viewer__status,
-.studio-viewer__item:focus-within .studio-viewer__status {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .studio-viewer__status {
-    opacity: 1;
-  }
 }
 
 .studio-lightbox {
@@ -175,6 +164,9 @@
 
 .admin-canvas-block--text {
   max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .admin-canvas-block--text .admin-login__label {
@@ -201,12 +193,12 @@
 }
 
 .admin-piece-sheet {
-  display: grid;
-  grid-template-columns: minmax(12rem, 1fr) minmax(16rem, 1.4fr) auto;
-  gap: 16px 20px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
   margin: 8px 0 18px;
-  padding: 14px 0 4px;
+  padding: 14px 0 18px;
   border-bottom: 1px solid var(--admin-line, #e4e0d8);
 }
 
@@ -221,13 +213,7 @@
 }
 
 .admin-piece-sheet__avail {
-  min-width: 11rem;
-}
-
-@media (max-width: 800px) {
-  .admin-piece-sheet {
-    grid-template-columns: 1fr;
-  }
+  min-width: 0;
 }
 
 .canvas-page {
@@ -253,6 +239,7 @@
 .canvas-page__text {
   max-width: 40rem;
   margin: 0 0 2.5rem;
+  text-align: left;
 }
 
 .canvas-page__text h1 {

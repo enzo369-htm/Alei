@@ -86,26 +86,26 @@ export function AdminPageEditor({ slug, heading }: Props) {
 
       <label className="admin-login__label" htmlFor="page-title">
         Título
+        <input
+          id="page-title"
+          className="admin-login__input"
+          value={title}
+          disabled={busy}
+          onChange={(event) => setTitle(event.target.value)}
+        />
       </label>
-      <input
-        id="page-title"
-        className="admin-login__input"
-        value={title}
-        disabled={busy}
-        onChange={(event) => setTitle(event.target.value)}
-      />
 
       <label className="admin-login__label" htmlFor="page-body">
         Texto
+        <textarea
+          id="page-body"
+          className="admin-login__input admin-textarea"
+          rows={16}
+          value={body}
+          disabled={busy}
+          onChange={(event) => setBody(event.target.value)}
+        />
       </label>
-      <textarea
-        id="page-body"
-        className="admin-login__input admin-textarea"
-        rows={16}
-        value={body}
-        disabled={busy}
-        onChange={(event) => setBody(event.target.value)}
-      />
 
       <p className="admin-login__label">Imagen (opcional)</p>
       {image && (

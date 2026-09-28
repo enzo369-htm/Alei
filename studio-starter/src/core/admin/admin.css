@@ -45,6 +45,10 @@ body {
   border-radius: var(--admin-radius);
 }
 
+.admin-login__card .admin-login__input {
+  max-width: none;
+}
+
 .admin-login__kicker {
   margin: 0;
   font-size: 11px;
@@ -66,18 +70,26 @@ body {
 }
 
 .admin-login__label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin: 0;
   font-size: 13px;
   color: var(--admin-muted);
 }
 
 .admin-login__input {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
   padding: 10px 12px;
   font: inherit;
   font-size: 15px;
   color: inherit;
   background: var(--admin-bg);
   border: 1px solid var(--admin-line);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .admin-login__input:focus-visible {
@@ -229,6 +241,11 @@ body {
 }
 
 .admin-page--canvas .admin-piece-sheet {
+  max-width: 40rem;
+}
+
+.admin-piece-sheet .admin-login__input,
+.admin-piece-sheet .admin-textarea {
   max-width: none;
 }
 
@@ -241,6 +258,14 @@ body {
 .admin-page {
   padding: 36px 32px 64px;
   max-width: 720px;
+}
+
+.admin-page .admin-login__label {
+  margin-top: 16px;
+}
+
+.admin-login__card .admin-login__label {
+  margin-top: 0;
 }
 
 .admin-page--wide {
@@ -371,7 +396,7 @@ body {
 
 .admin-textarea {
   resize: vertical;
-  min-height: 4.5em;
+  min-height: 10rem;
 }
 
 .admin-actions {
