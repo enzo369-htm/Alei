@@ -59,7 +59,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     <article className="artwork">
       <div className="artwork__image">
         {piece.media ? (
-          <Picture media={piece.media} sizes="(max-width: 800px) 100vw, 50vw" alt={piece.title} />
+          <Picture media={piece.media} sizes="(max-width: 800px) 100vw, 62vw" alt={piece.title} />
         ) : (
           <img src={piece.src} alt={piece.title} />
         )}

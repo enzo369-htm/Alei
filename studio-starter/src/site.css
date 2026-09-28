@@ -124,12 +124,12 @@ body,
 
 .artwork {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
   align-items: start;
   min-height: calc(100dvh - 58px);
   padding: 28px 50px 80px;
   box-sizing: border-box;
-  gap: 0 48px;
+  gap: 0 40px;
 }
 
 .artwork__image img {
