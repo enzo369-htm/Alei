@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 
 const links = [
-  { to: '/', label: 'Home' },
   { to: '/works', label: 'works' },
   { to: '/about', label: 'about' },
   { to: '/colabs', label: 'colabs' },

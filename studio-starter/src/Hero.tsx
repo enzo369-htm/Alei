@@ -1,5 +1,12 @@
 import { useState } from 'react'
 
+/** Para cambiar la flor: copiá una de estas rutas, guardá (Cmd+S) y recargá.
+ *  '/hero/flower-red.png?v=3'
+ *  '/hero/flower-pink.png?v=3'
+ *  '/hero/flower.png?v=3'
+ */
+const FLOWER_SRC = '/hero/flower.png?v=3'
+
 type Flower = {
   id: number
   x: number
@@ -27,17 +34,18 @@ export function Hero({ src }: { src: string }) {
 
   return (
     <div className="hero" onClick={handleClick}>
-      <img src={src} alt="Painting by Alei" draggable={false} decoding="sync" />
+      <img src={src} alt="Painting by Alei" className="hero__painting" draggable={false} decoding="sync" />
       <p className="hero__hint">clickea el cuadro</p>
       {flowers.map((flower) => (
-        <span
+        <img
           key={flower.id}
+          src={FLOWER_SRC}
+          alt=""
           aria-hidden
           className="hero__flower"
+          draggable={false}
           style={{ left: flower.x, top: flower.y }}
-        >
-          ✿
-        </span>
+        />
       ))}
     </div>
   )
