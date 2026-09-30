@@ -1,18 +1,11 @@
 import { useState } from 'react'
 
-/** Para cambiar la flor: poné UNA de estas opciones, guardá (Cmd+S) y recargá.
- *  Emoji / carácter:
- *    '✿'
- *    '💮'
- *  Imagen:
- *    '/hero/flower-red.png?v=3'
- *    '/hero/flower-pink.png?v=3'
- *    '/hero/flower.png?v=3'
- */
-const FLOWER = '✿'
-const CURSOR = '✿'
+/** Flores que alternan con cada click (también son el mouse). Guardá (Cmd+S) y recargá. */
+const FLOWERS = ['✿', '❀']
 
-const FLOWER_IS_IMAGE = FLOWER.startsWith('/') || FLOWER.startsWith('http')
+function isImage(src: string) {
+  return src.startsWith('/') || src.startsWith('http')
+}
 
 type Point = {
   x: number
@@ -21,6 +14,7 @@ type Point = {
 
 type Flower = Point & {
   id: number
+  mark: string
 }
 
 function pointFromEvent(event: React.MouseEvent<HTMLDivElement>): Point {
@@ -34,14 +28,18 @@ function pointFromEvent(event: React.MouseEvent<HTMLDivElement>): Point {
 export function Hero({ src }: { src: string }) {
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [cursor, setCursor] = useState<Point | null>(null)
+  const [active, setActive] = useState(0)
+  const current = FLOWERS[active] ?? FLOWERS[0]
 
   function handleClick(event: React.MouseEvent<HTMLDivElement>) {
     const point = pointFromEvent(event)
     const id = Date.now() + Math.random()
-    setFlowers((current) => [...current, { id, ...point }])
+    const mark = current
+    setFlowers((items) => [...items, { id, mark, ...point }])
+    setActive((index) => (index + 1) % FLOWERS.length)
 
     window.setTimeout(() => {
-      setFlowers((current) => current.filter((item) => item.id !== id))
+      setFlowers((items) => items.filter((item) => item.id !== id))
     }, 10_000)
   }
 
@@ -55,14 +53,14 @@ export function Hero({ src }: { src: string }) {
       <img src={src} alt="Painting by Alei" className="hero__painting" draggable={false} decoding="sync" />
       {cursor ? (
         <span aria-hidden className="hero__cursor" style={{ left: cursor.x, top: cursor.y }}>
-          {CURSOR}
+          {current}
         </span>
       ) : null}
       {flowers.map((flower) =>
-        FLOWER_IS_IMAGE ? (
+        isImage(flower.mark) ? (
           <img
             key={flower.id}
-            src={FLOWER}
+            src={flower.mark}
             alt=""
             aria-hidden
             className="hero__flower hero__flower--img"
@@ -76,7 +74,7 @@ export function Hero({ src }: { src: string }) {
             className="hero__flower hero__flower--mark"
             style={{ left: flower.x, top: flower.y }}
           >
-            {FLOWER}
+            {flower.mark}
           </span>
         ),
       )}
