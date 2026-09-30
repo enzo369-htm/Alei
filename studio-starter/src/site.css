@@ -189,6 +189,14 @@ body,
   padding: 40px var(--site-gutter) 80px;
 }
 
+.site .page-view__grid {
+  grid-template-columns: 322px minmax(0, 1fr);
+}
+
+.site .page-view__copy {
+  max-width: 85%;
+}
+
 @media (max-width: 800px) {
   .site {
     --site-gutter: 20px;
@@ -202,6 +210,14 @@ body,
 
   .artwork__meta {
     padding-top: 0;
+    max-width: none;
+  }
+
+  .site .page-view__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site .page-view__copy {
     max-width: none;
   }
 }

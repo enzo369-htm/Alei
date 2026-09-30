@@ -27,19 +27,19 @@ export function AboutPage() {
       <div className="page-view__grid">
         {page.image ? (
           <div className="page-view__image">
-            <Picture media={page.image} sizes="(max-width: 800px) 100vw, 360px" alt="" />
+            <Picture media={page.image} sizes="(max-width: 800px) 100vw, 322px" alt="" />
           </div>
         ) : null}
-        <div>
-          {page.title ? <h1 className="page-view__title">{page.title}</h1> : null}
-          {page.body ? (
-            <div className="page-view__body">
-              {page.body.split('\n\n').map((para, index) => (
-                <p key={index}>{para}</p>
-              ))}
-            </div>
-          ) : null}
-        </div>
+          <div className="page-view__copy">
+            {page.title ? <h1 className="page-view__title">{page.title}</h1> : null}
+            {page.body ? (
+              <div className="page-view__body">
+                {page.body.split('\n\n').map((para, index) => (
+                  <p key={index}>{para}</p>
+                ))}
+              </div>
+            ) : null}
+          </div>
       </div>
     </article>
   )
