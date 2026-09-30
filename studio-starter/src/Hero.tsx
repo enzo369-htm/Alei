@@ -9,7 +9,7 @@ import { useState } from 'react'
  *    '/hero/flower-pink.png?v=3'
  *    '/hero/flower.png?v=3'
  */
-const FLOWER = '/hero/flower-red.png?v=3'
+const FLOWER = '✿'
 const CURSOR = '✿'
 
 const FLOWER_IS_IMAGE = FLOWER.startsWith('/') || FLOWER.startsWith('http')
