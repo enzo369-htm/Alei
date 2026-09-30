@@ -1,11 +1,10 @@
 import { useState } from 'react'
 
-/** Para cambiar la flor: copiá una de estas rutas, guardá (Cmd+S) y recargá.
- *  '/hero/flower-red.png?v=3'
- *  '/hero/flower-pink.png?v=3'
- *  '/hero/flower.png?v=3'
+/** Para cambiar la flor: poné el emoji en FLOWER, guardá (Cmd+S) y recargá.
+ *  💮  flor blanca
+ *  🌸  🌺  🌹
  */
-const FLOWER_SRC = '/hero/flower.png?v=3'
+const FLOWER = '✿'
 
 type Flower = {
   id: number
@@ -37,15 +36,14 @@ export function Hero({ src }: { src: string }) {
       <img src={src} alt="Painting by Alei" className="hero__painting" draggable={false} decoding="sync" />
       <p className="hero__hint">clickea el cuadro</p>
       {flowers.map((flower) => (
-        <img
+        <span
           key={flower.id}
-          src={FLOWER_SRC}
-          alt=""
           aria-hidden
           className="hero__flower"
-          draggable={false}
           style={{ left: flower.x, top: flower.y }}
-        />
+        >
+          {FLOWER}
+        </span>
       ))}
     </div>
   )
