@@ -239,7 +239,7 @@ body,
   grid-template-columns: min(750px, 47vw) 290px;
   grid-template-areas:
     'image copy'
-    'image foot';
+    '. foot';
   justify-content: start;
   align-items: start;
   column-gap: 30px;
@@ -377,7 +377,6 @@ body,
 
 .artwork--works .artwork__foot {
   grid-area: foot;
-  align-self: end;
   margin: 14px 0 0;
   padding: 0;
 }
@@ -417,7 +416,6 @@ body,
   }
 
   .artwork--works .artwork__foot {
-    align-self: start;
     margin: 0;
   }
 }
