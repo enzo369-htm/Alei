@@ -233,3 +233,191 @@ body,
 .site .canvas-page__kicker {
   display: none;
 }
+
+.artwork.artwork--works {
+  display: grid;
+  grid-template-columns: min(750px, 47vw) 290px;
+  grid-template-areas:
+    'image copy'
+    'image foot';
+  justify-content: start;
+  align-items: start;
+  column-gap: 30px;
+  row-gap: 0;
+  min-height: 0;
+  padding: calc(110px - 81px) 0 200px 30px;
+  box-sizing: border-box;
+}
+
+.artwork--works .artwork__stage {
+  grid-area: image;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.47 / 1;
+  align-self: start;
+}
+
+.artwork--works .artwork__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.artwork--works .artwork__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.artwork--works .artwork__slide.is-active {
+  opacity: 1;
+}
+
+.artwork--works .artwork__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.artwork--works .artwork__nav {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 50%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.artwork--works .artwork__nav--prev {
+  left: 0;
+}
+
+.artwork--works .artwork__nav--next {
+  right: 0;
+}
+
+.artwork--works .artwork__arrow {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: #000000;
+  font-size: 42px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 0.2s ease;
+}
+
+.artwork--works .artwork__nav--prev .artwork__arrow {
+  left: 10px;
+}
+
+.artwork--works .artwork__nav--next .artwork__arrow {
+  right: 10px;
+}
+
+.artwork--works .artwork__frame:hover .artwork__arrow,
+.artwork--works .artwork__frame:focus-within .artwork__arrow {
+  opacity: 1;
+}
+
+.artwork--works .artwork__copy {
+  grid-area: copy;
+  width: 290px;
+  max-width: 290px;
+  padding-top: 0;
+}
+
+.artwork--works .artwork__title {
+  margin: 0 0 8px;
+  color: #000000;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-transform: none;
+}
+
+.artwork--works .artwork__measures,
+.artwork--works .artwork__technique {
+  margin: 0;
+  color: #000000;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.artwork--works .artwork__text {
+  margin: 12px 0 0;
+  color: #000000;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.artwork--works .artwork__foot {
+  grid-area: foot;
+  align-self: end;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.artwork--works .artwork__status,
+.artwork--works .artwork__mail {
+  margin: 0;
+  color: #000000;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artwork--works .artwork__slide {
+    transition: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .artwork.artwork--works {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'image'
+      'copy'
+      'foot';
+    padding: 36px 20px 80px;
+    row-gap: 22px;
+  }
+
+  .artwork--works .artwork__stage,
+  .artwork--works .artwork__copy {
+    width: 100%;
+    max-width: none;
+  }
+
+  .artwork--works .artwork__foot {
+    align-self: start;
+    margin: 0;
+  }
+}
