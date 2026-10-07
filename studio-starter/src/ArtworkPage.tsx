@@ -36,13 +36,15 @@ function sheetOf(ficha: string) {
         : [line],
     )
   const measures = lines.filter((line) => MEASURE_RE.test(line))
+  const date = lines.filter((line) => DATE_RE.test(line)).join('\n')
   const rest = lines.filter((line) => !MEASURE_RE.test(line) && !DATE_RE.test(line))
-  if (rest.length === 0) return { measures: measures.join('\n'), technique: '', text: '' }
+  const sized = { measures: measures.join('\n'), date }
+  if (rest.length === 0) return { ...sized, technique: '', text: '' }
   if (rest.length === 1 && rest[0].length > 80) {
-    return { measures: measures.join('\n'), technique: '', text: rest[0] }
+    return { ...sized, technique: '', text: rest[0] }
   }
   return {
-    measures: measures.join('\n'),
+    ...sized,
     technique: rest[0] ?? '',
     text: rest.slice(1).join('\n'),
   }
@@ -125,6 +127,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
         {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
         {sheet.measures ? <p className="artwork__measures">{sheet.measures}</p> : null}
         {technique ? <p className="artwork__technique">{technique}</p> : null}
+        {sheet.date ? <p className="artwork__date">{sheet.date}</p> : null}
         <p className="artwork__text">{sheet.text || WORKS_TEST_TEXT}</p>
         <p className="artwork__foot">
           {sold ? (

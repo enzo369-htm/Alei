@@ -240,10 +240,10 @@ body,
   grid-template-areas: 'image copy';
   justify-content: start;
   align-items: start;
-  column-gap: 20px;
+  column-gap: 10px;
   row-gap: 0;
   min-height: 0;
-  padding: 100px 30px;
+  padding: 0 30px 100px;
   box-sizing: border-box;
 }
 
@@ -367,6 +367,7 @@ body,
 
 .artwork--works .artwork__measures,
 .artwork--works .artwork__technique,
+.artwork--works .artwork__date,
 .artwork--works .artwork__text {
   width: 100%;
   max-width: 380px;
@@ -377,7 +378,8 @@ body,
 }
 
 .artwork--works .artwork__measures,
-.artwork--works .artwork__technique {
+.artwork--works .artwork__technique,
+.artwork--works .artwork__date {
   margin: 0;
   font-size: 16px;
   font-style: italic;
@@ -428,8 +430,8 @@ body,
     grid-template-areas:
       'image'
       'copy';
-    padding: 36px 20px 80px;
-    row-gap: 11px;
+    padding: 0 20px 80px;
+    row-gap: 10px;
   }
 
   .artwork--works .artwork__stage,
@@ -447,6 +449,7 @@ body,
   .artwork--works .artwork__title,
   .artwork--works .artwork__measures,
   .artwork--works .artwork__technique,
+  .artwork--works .artwork__date,
   .artwork--works .artwork__text {
     max-width: 100%;
   }
