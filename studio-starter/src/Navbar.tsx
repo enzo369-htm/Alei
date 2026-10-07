@@ -10,7 +10,7 @@ export function Navbar() {
   return (
     <nav className="site-nav">
       <Link to="/" className="site-nav__brand">
-        ALEI
+        alei
       </Link>
       <ul className="site-nav__links">
         {links.map((link) => (
