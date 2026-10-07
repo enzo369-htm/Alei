@@ -251,3 +251,222 @@ body,
 .site .canvas-page__kicker {
   display: none;
 }
+
+.artwork.artwork--works {
+  display: grid;
+  grid-template-columns: 850px 380px;
+  grid-template-areas: 'image copy';
+  justify-content: start;
+  align-items: start;
+  column-gap: 10px;
+  row-gap: 0;
+  min-height: 0;
+  padding: 0 30px 100px;
+  box-sizing: border-box;
+}
+
+.artwork--works .artwork__stage {
+  grid-area: image;
+  position: relative;
+  width: 850px;
+  height: 580px;
+  align-self: start;
+}
+
+.artwork--works .artwork__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.artwork--works .artwork__track {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  transition: transform 0.45s ease;
+}
+
+.artwork--works .artwork__slide {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+.artwork--works .artwork__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.artwork--works .artwork__nav {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 50%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.artwork--works .artwork__nav--prev {
+  left: 0;
+}
+
+.artwork--works .artwork__nav--next {
+  right: 0;
+}
+
+.artwork--works .artwork__arrow {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: #000000;
+  font-size: 42px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 0.2s ease;
+}
+
+.artwork--works .artwork__nav--prev .artwork__arrow {
+  left: 10px;
+}
+
+.artwork--works .artwork__nav--next .artwork__arrow {
+  right: 10px;
+}
+
+.artwork--works .artwork__frame:hover .artwork__arrow {
+  opacity: 1;
+}
+
+.artwork--works .artwork__copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: start;
+  width: 380px;
+  max-width: 380px;
+  height: 580px;
+  padding-top: 0;
+  overflow: visible;
+}
+
+.artwork--works .artwork__title {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 0 4px;
+  color: #000000;
+  font-size: 30px;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-transform: none;
+  white-space: normal;
+}
+
+.artwork--works .artwork__sheet,
+.artwork--works .artwork__text {
+  width: 100%;
+  max-width: 380px;
+  color: #000000;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  white-space: pre-wrap;
+}
+
+.artwork--works .artwork__sheet {
+  margin: 0;
+  font-size: 20px;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.artwork--works .artwork__text {
+  margin: 25px 0 0;
+  font-size: 20px;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+.artwork--works .artwork__foot {
+  margin: auto 0 0;
+  padding: 0;
+}
+
+.artwork--works .artwork__status,
+.artwork--works .artwork__mail {
+  margin: 0;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.artwork--works .artwork__status {
+  color: #e10600;
+  font-size: 13.5px;
+}
+
+.artwork--works .artwork__mail {
+  color: #000000;
+  font-size: 11.7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artwork--works .artwork__track {
+    transition: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .artwork.artwork--works {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'image'
+      'copy';
+    padding: 0 20px 80px;
+    row-gap: 10px;
+  }
+
+  .artwork--works .artwork__stage,
+  .artwork--works .artwork__copy {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    height: auto;
+  }
+
+  .artwork--works .artwork__stage {
+    aspect-ratio: 850 / 580;
+  }
+
+  .artwork--works .artwork__title,
+  .artwork--works .artwork__sheet,
+  .artwork--works .artwork__text {
+    max-width: 100%;
+  }
+
+  .artwork--works .artwork__foot {
+    margin-top: 28px;
+  }
+}

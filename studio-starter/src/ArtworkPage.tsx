@@ -1,16 +1,119 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { apiGetCanvas, type CanvasPiece } from './core/api/canvas'
+import { apiGetCanvas, type CanvasPiece, type PieceSlide } from './core/api/canvas'
+import type { MediaRecord } from './core/images/types'
 import { Picture } from './core/images/Picture'
 import { site } from './site.config'
+import '@fontsource-variable/inter/wght-italic.css'
 
-function mailHref(title: string) {
-  const email = site.contactEmail.trim()
-  if (!email) return ''
+const WORKS_TEST_EMAIL = 'prueba@alei.com'
+
+function sheetLabel(value: string) {
+  return value
+    .split('\n')
+    .map((line) => line.replace(/\s*\(\s*enmarcado\s*\)/gi, '').replace(/[ \t]{2,}/g, ' ').trimEnd())
+    .join('\n')
+    .trim()
+}
+
+function mailHref(title: string, email: string) {
+  const clean = email.trim()
+  if (!clean) return ''
   const work = title.trim() || 'the work'
   const subject = encodeURIComponent(`I'm interested in the work ${work}`)
   const body = encodeURIComponent(`I'm interested in the work ${work}.`)
-  return `mailto:${email}?subject=${subject}&body=${body}`
+  return `mailto:${clean}?subject=${subject}&body=${body}`
+}
+
+type FrameSlide = {
+  id: string
+  media: MediaRecord | null
+  src: string
+}
+
+function frameSlides(piece: CanvasPiece): FrameSlide[] {
+  const main: FrameSlide[] =
+    piece.media?.url || piece.src
+      ? [{ id: `main-${piece.id}`, media: piece.media, src: piece.src }]
+      : []
+  const extra = (piece.slides ?? [])
+    .filter((slide): slide is PieceSlide => Boolean(slide.media?.url || slide.src))
+    .map((slide) => ({ id: slide.id, media: slide.media, src: slide.src }))
+  return [...main, ...extra]
+}
+
+function WorkImage({ piece }: { piece: CanvasPiece }) {
+  const slides = frameSlides(piece)
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    setIndex(0)
+  }, [piece.id])
+
+  function step(delta: number) {
+    if (slides.length < 2) return
+    setIndex((current) => (current + delta + slides.length) % slides.length)
+  }
+
+  return (
+    <div className="artwork__frame">
+      <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
+        {slides.map((slide, slideIndex) => (
+          <div key={slide.id} className="artwork__slide">
+            {slide.media ? (
+              <Picture
+                media={slide.media}
+                sizes="(max-width: 800px) 100vw, 850px"
+                alt={piece.title}
+                loading={slideIndex === index ? 'eager' : 'lazy'}
+              />
+            ) : (
+              <img src={slide.src} alt={piece.title} loading={slideIndex === index ? 'eager' : 'lazy'} />
+            )}
+          </div>
+        ))}
+      </div>
+      <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
+        <span className="artwork__arrow" aria-hidden="true">
+          ‹
+        </span>
+      </button>
+      <button type="button" className="artwork__nav artwork__nav--next" aria-label="Next image" onClick={() => step(1)}>
+        <span className="artwork__arrow" aria-hidden="true">
+          ›
+        </span>
+      </button>
+    </div>
+  )
+}
+
+function WorksSheet({ piece }: { piece: CanvasPiece }) {
+  const sheet = sheetLabel(piece.ficha)
+  const text = piece.text.trim()
+  const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
+  const sold = piece.availability === 'sold'
+
+  return (
+    <article className="artwork artwork--works">
+      <div className="artwork__stage">
+        <WorkImage piece={piece} />
+      </div>
+      <div className="artwork__copy">
+        {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
+        {sheet ? <p className="artwork__sheet">{sheet}</p> : null}
+        {text ? <p className="artwork__text">{text}</p> : null}
+        <p className="artwork__foot">
+          {sold ? (
+            <span className="artwork__status">sold</span>
+          ) : (
+            <a className="artwork__mail" href={mailHref(piece.title, email)}>
+              {email}
+            </a>
+          )}
+        </p>
+      </div>
+    </article>
+  )
 }
 
 export function ArtworkPage({ scope, label }: { scope: string; label: string }) {
@@ -21,7 +124,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
   useEffect(() => {
     setPiece(undefined)
     setError('')
-    void apiGetCanvas(scope)
+    void apiGetCanvas(scope, { slides: true })
       .then((data) => {
         const found = data.blocks
           .filter((block) => scope !== 'works' || block.kind !== 'canvas' || block.visible !== false)
@@ -52,7 +155,9 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     )
   }
 
-  const mail = mailHref(piece.title)
+  if (scope === 'works') return <WorksSheet piece={piece} />
+
+  const mail = mailHref(piece.title, site.contactEmail)
   const status = piece.availability === 'sold' ? 'Sold' : 'Available'
 
   return (
@@ -67,6 +172,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
       <div className="artwork__meta">
         {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
         {piece.ficha ? <p className="artwork__ficha">{piece.ficha}</p> : null}
+        {piece.text ? <p className="artwork__ficha">{piece.text}</p> : null}
         <p className="artwork__status">{status}</p>
         {mail ? (
           <a className="artwork__mail" href={mail}>

@@ -72,6 +72,7 @@ test('PUT guarda título, ficha y Sold de la pieza', () => {
             mediaId: '00000000-0000-4000-8000-0000000000aa',
             title: 'Night field',
             ficha: 'Oil on canvas\n40 × 50 cm',
+            text: 'A note about the painting.',
             availability: 'sold',
             x: 10,
             y: 12,
@@ -88,5 +89,54 @@ test('PUT guarda título, ficha y Sold de la pieza', () => {
   assert.equal(piece.id, '00000000-0000-4000-8000-0000000000bb')
   assert.equal(piece.title, 'Night field')
   assert.equal(piece.ficha, 'Oil on canvas\n40 × 50 cm')
+  assert.equal(piece.text, 'A note about the painting.')
   assert.equal(piece.availability, 'sold')
+  assert.equal(piece.slides, undefined)
+})
+
+test('PUT guarda las fotos extra de la ficha y no las mezcla con el lienzo', () => {
+  const extra = '00000000-0000-4000-8000-0000000000cc'
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [
+          {
+            mediaId: '00000000-0000-4000-8000-0000000000aa',
+            slides: [{ mediaId: extra }, { id: 'tmp', mediaId: extra }],
+          },
+        ],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  const piece = parsed.blocks[0]!.pieces[0]!
+  assert.equal(piece.mediaId, '00000000-0000-4000-8000-0000000000aa')
+  assert.deepEqual(piece.slides, [{ mediaId: extra }, { mediaId: extra }])
+  assert.deepEqual(mediaIdsOf(parsed.blocks), [
+    '00000000-0000-4000-8000-0000000000aa',
+    extra,
+  ])
+})
+
+test('PUT rechaza más fotos extra que el máximo', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [
+          {
+            mediaId: '00000000-0000-4000-8000-0000000000aa',
+            slides: Array.from({ length: 13 }, () => ({
+              mediaId: '00000000-0000-4000-8000-0000000000cc',
+            })),
+          },
+        ],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, false)
 })

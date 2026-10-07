@@ -2,7 +2,7 @@
 
 Módulo de **lienzo libre** + **texto corto**. En el motor viene cableado como demo (`/canvas`), igual que Editorial y Bio. Si un cliente no lo usa, se sacan las rutas y el link; `rsync --exclude modules` **no** lo apaga.
 
-No es una receta. No hay i18n, hero ni tabla `sections`. Cada pieza puede llevar título, ficha y Available/Sold. Un `scope` (texto tipo slug, p. ej. `demo` o `works`) agrupa los bloques de una pantalla.
+No es una receta. No hay i18n, hero ni tabla `sections`. Cada pieza puede llevar título, medidas y técnica, texto y Available/Sold. En la ficha pública de Works esos tres textos salen siempre igual: título en negrita a 30px, medidas y técnica en cursiva a 20px, texto normal a 20px. El admin no elige la fuente. Un `scope` (texto tipo slug, p. ej. `demo` o `works`) agrupa los bloques de una pantalla.
 
 ## Qué hay
 
@@ -39,6 +39,10 @@ Las rutas van al core porque Hobby cuenta un archivo de `api/` como una función
 PUT actualiza **solo los bloques listados** y reemplaza las piezas de **esos** ids. Un `{ blocks: [] }` no borra imágenes. Un id desconocido es 400.
 
 Máximo 4 bloques de cada kind por scope (el conteo es de app; dos POST a la vez pueden pasar de 4).
+
+## Fotos extra de una obra
+
+La imagen del placement es la del lienzo. `canvas_piece_slides` (`db/008_piece_slides.sql`) guarda hasta 12 fotos que solo entran en el carrusel de la ficha, después de la foto del lienzo. En Works, al seleccionar la pintura, el admin las suma con «Agregar imagen». No se posicionan en el free canvas. Si el PUT no manda `slides`, las que ya están no se tocan. Un array vacío las borra.
 
 ## Qué no trae (a propósito)
 

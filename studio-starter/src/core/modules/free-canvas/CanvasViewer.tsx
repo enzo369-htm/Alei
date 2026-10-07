@@ -8,10 +8,12 @@ export type CanvasViewerProps = {
   items: CanvasItemInput[]
   heightRatio?: number | null
   renderCaption?: (item: CanvasItem) => ReactNode
+  /** Works: the hover label is only “sold”. Available stays blank. */
+  hideAvailable?: boolean
 }
 
 /** Mismo lienzo que el admin: posiciones en %, alto = ancho × ratio. */
-export function CanvasViewer({ items, heightRatio, renderCaption }: CanvasViewerProps) {
+export function CanvasViewer({ items, heightRatio, renderCaption, hideAvailable = false }: CanvasViewerProps) {
   const positioned = withDefaultPositions(items)
   const ratio = heightRatio ?? 1.2
 
@@ -21,28 +23,31 @@ export function CanvasViewer({ items, heightRatio, renderCaption }: CanvasViewer
     <div className="studio-viewer">
       <div className="studio-viewer__desktop" style={{ paddingTop: `${ratio * 100}%` }}>
         {positioned.map((item) => (
-          <DesktopItem key={item.id} item={item} renderCaption={renderCaption} />
+          <DesktopItem key={item.id} item={item} renderCaption={renderCaption} hideAvailable={hideAvailable} />
         ))}
       </div>
     </div>
   )
 }
 
-function statusOf(item: CanvasItem) {
-  if (!item.availability) return ''
-  return item.availability === 'sold' ? 'Sold' : 'Available'
+function statusOf(item: CanvasItem, hideAvailable: boolean) {
+  if (item.availability === 'sold') return hideAvailable ? 'sold' : 'Sold'
+  if (hideAvailable || !item.availability) return ''
+  return 'Available'
 }
 
 function DesktopItem({
   item,
   renderCaption,
+  hideAvailable,
 }: {
   item: CanvasItem
   renderCaption?: (item: CanvasItem) => ReactNode
+  hideAvailable: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const caption = renderCaption?.(item)
-  const status = statusOf(item)
+  const status = statusOf(item, hideAvailable)
   const image = item.media ? (
     <Picture media={item.media} sizes={`${Math.round(item.width)}vw`} alt={item.label || ''} />
   ) : (

@@ -20,6 +20,17 @@ type CanvasRow = {
   visible: boolean
 }
 
+type SlideRow = {
+  id: string
+  placement_id: string
+  media_id: string
+  url: string | null
+  media_width: number | null
+  media_height: number | null
+  mime: string | null
+  variants: unknown
+}
+
 type PlacementRow = {
   id: string
   canvas_id: string
@@ -30,12 +41,21 @@ type PlacementRow = {
   z_index: number
   title: string
   ficha: string
+  piece_text: string
   availability: PieceAvailability
   url: string | null
   media_width: number | null
   media_height: number | null
   mime: string | null
   variants: unknown
+  slides?: unknown
+}
+
+export type PieceSlide = {
+  id: string
+  mediaId: string
+  src: string
+  media: MediaRecord | null
 }
 
 export type CanvasPiece = {
@@ -48,8 +68,10 @@ export type CanvasPiece = {
   z: number
   title: string
   ficha: string
+  text: string
   availability: PieceAvailability
   media: MediaRecord | null
+  slides: PieceSlide[]
 }
 
 export type CanvasBlock = {
@@ -63,7 +85,31 @@ export type CanvasBlock = {
   pieces: CanvasPiece[]
 }
 
-function mediaOf(row: PlacementRow): MediaRecord | null {
+function slideOf(row: SlideRow): PieceSlide {
+  const media = mediaOf({
+    media_id: row.media_id,
+    url: row.url,
+    media_width: row.media_width,
+    media_height: row.media_height,
+    mime: row.mime,
+    variants: row.variants,
+  })
+  return {
+    id: row.id,
+    mediaId: row.media_id,
+    src: media?.url ?? '',
+    media,
+  }
+}
+
+function mediaOf(row: {
+  media_id: string
+  url: string | null
+  media_width: number | null
+  media_height: number | null
+  mime: string | null
+  variants: unknown
+}): MediaRecord | null {
   if (!row.media_id || !row.url) return null
   return {
     id: row.media_id,
@@ -87,9 +133,22 @@ function pieceOf(row: PlacementRow): CanvasPiece {
     z: row.z_index,
     title: row.title ?? '',
     ficha: row.ficha ?? '',
+    text: row.piece_text ?? '',
     availability: row.availability === 'sold' ? 'sold' : 'available',
     media,
+    slides: slidesFrom(row.slides),
   }
+}
+
+function slidesFrom(value: unknown): PieceSlide[] {
+  const parsed = typeof value === 'string' ? JSON.parse(value) : value
+  if (!Array.isArray(parsed)) return []
+  return parsed.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const row = item as SlideRow
+    if (!row.id || !row.media_id) return []
+    return [slideOf(row)]
+  })
 }
 
 function blockOf(row: CanvasRow, pieces: CanvasPiece[]): CanvasBlock {
@@ -111,7 +170,7 @@ function scopeOr400(raw: string | undefined) {
   return scope
 }
 
-async function loadScope(scope: string) {
+async function loadScope(scope: string, withSlides: boolean) {
   const db = sql()
   const canvases = (await db`
     select id, scope, kind, title, body, sort_order, height_ratio, visible
@@ -120,18 +179,51 @@ async function loadScope(scope: string) {
     order by sort_order, created_at
   `) as CanvasRow[]
 
-  const placements = (await db`
-    select
-      p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
-      p.title, p.ficha, p.availability,
-      m.url, m.width as media_width, m.height as media_height,
-      m.mime, m.variants
-    from canvas_placements p
-    join media m on m.id = p.media_id
-    join canvases c on c.id = p.canvas_id
-    where c.scope = ${scope}
-    order by p.z_index, p.created_at
-  `) as PlacementRow[]
+  const placements = withSlides
+    ? ((await db`
+        select
+          p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
+          p.title, p.ficha, p.piece_text, p.availability,
+          m.url, m.width as media_width, m.height as media_height,
+          m.mime, m.variants,
+          (
+            select coalesce(
+              json_agg(
+                json_build_object(
+                  'id', s.id,
+                  'media_id', s.media_id,
+                  'url', sm.url,
+                  'media_width', sm.width,
+                  'media_height', sm.height,
+                  'mime', sm.mime,
+                  'variants', sm.variants
+                )
+                order by s.sort_order, s.id
+              ),
+              '[]'::json
+            )
+            from canvas_piece_slides s
+            join media sm on sm.id = s.media_id
+            where s.placement_id = p.id
+          ) as slides
+        from canvas_placements p
+        join media m on m.id = p.media_id
+        join canvases c on c.id = p.canvas_id
+        where c.scope = ${scope}
+        order by p.z_index, p.created_at
+      `) as PlacementRow[])
+    : ((await db`
+        select
+          p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
+          p.title, p.ficha, p.piece_text, p.availability,
+          m.url, m.width as media_width, m.height as media_height,
+          m.mime, m.variants
+        from canvas_placements p
+        join media m on m.id = p.media_id
+        join canvases c on c.id = p.canvas_id
+        where c.scope = ${scope}
+        order by p.z_index, p.created_at
+      `) as PlacementRow[])
 
   const byCanvas = new Map<string, CanvasPiece[]>()
   for (const row of placements) {
@@ -143,6 +235,22 @@ async function loadScope(scope: string) {
   return {
     scope,
     blocks: canvases.map((row) => blockOf(row, byCanvas.get(row.id) ?? [])),
+  }
+}
+
+async function replaceSlides(
+  db: ReturnType<typeof sql>,
+  placementId: string,
+  slides: { mediaId: string }[],
+) {
+  await db`delete from canvas_piece_slides where placement_id = ${placementId}`
+  let order = 0
+  for (const slide of slides) {
+    await db`
+      insert into canvas_piece_slides (placement_id, media_id, sort_order)
+      values (${placementId}, ${slide.mediaId}, ${order})
+    `
+    order += 1
   }
 }
 
@@ -166,20 +274,25 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
           z_index = ${z},
           title = ${piece.title},
           ficha = ${piece.ficha},
+          piece_text = ${piece.text},
           availability = ${piece.availability}
         where id = ${piece.id} and canvas_id = ${block.id}
       `
       kept.add(piece.id)
+      if (piece.slides) await replaceSlides(db, piece.id, piece.slides)
     } else {
-      await db`
+      const inserted = (await db`
         insert into canvas_placements (
-          canvas_id, media_id, x, y, width, z_index, title, ficha, availability
+          canvas_id, media_id, x, y, width, z_index, title, ficha, piece_text, availability
         )
         values (
           ${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z},
-          ${piece.title}, ${piece.ficha}, ${piece.availability}
+          ${piece.title}, ${piece.ficha}, ${piece.text}, ${piece.availability}
         )
-      `
+        returning id
+      `) as { id: string }[]
+      const placementId = inserted[0]?.id
+      if (placementId && piece.slides) await replaceSlides(db, placementId, piece.slides)
     }
     z += 1
   }
@@ -190,11 +303,11 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
 }
 
 export const canvasRoutes = [
-  route('GET', '/api/canvas/:scope', async ({ params }) => {
+  route('GET', '/api/canvas/:scope', async ({ params, url }) => {
     const scope = scopeOr400(params.scope)
     if (!scope) return fail(400, 'Scope inválido')
     if (!hasDatabase()) return fail(503, 'Falta DATABASE_URL')
-    return json(await loadScope(scope))
+    return json(await loadScope(scope, url.searchParams.get('slides') === '1'))
   }),
 
   route('POST', '/api/canvas/:scope', async ({ request, params }) => {
@@ -268,7 +381,7 @@ export const canvasRoutes = [
       await replacePlacements(db, block)
     }
 
-    return json(await loadScope(scope))
+    return json(await loadScope(scope, true))
   }),
 
   route('DELETE', '/api/canvas/:scope/:id', async ({ request, params }) => {
