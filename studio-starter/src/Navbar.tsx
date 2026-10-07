@@ -1,20 +1,19 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useMatch } from 'react-router-dom'
 
 const links = [
-  { to: '/works', label: 'works' },
-  { to: '/about', label: 'about' },
-  { to: '/colabs', label: 'colabs' },
+  { to: '/works', label: 'Works' },
+  { to: '/colabs', label: 'Other.W' },
+  { to: '/about', label: 'About' },
 ] as const
 
 export function Navbar() {
-  const { pathname } = useLocation()
-  const onWork = /^\/works\/[^/]+/.test(pathname)
+  const onWork = useMatch('/works/:pieceId')
   const visible = onWork ? links.filter((link) => link.to === '/about') : links
 
   return (
     <nav className="site-nav">
       <Link to="/" className="site-nav__brand">
-        ALEI
+        alei
       </Link>
       <ul className="site-nav__links">
         {visible.map((link) => (
