@@ -86,7 +86,7 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
             {slide.media ? (
               <Picture
                 media={slide.media}
-                sizes="(max-width: 800px) 100vw, 750px"
+                sizes="(max-width: 800px) 100vw, 850px"
                 alt={piece.title}
                 loading={slideIndex === index ? 'eager' : 'lazy'}
               />
