@@ -1,4 +1,4 @@
-export const HERO_FALLBACK = '/hero/hero-01.jpg'
+export const HERO_FALLBACK = '/hero/Alei_Cuadros50936.jpg'
 
 export const HERO_COOKIE = 'alei-hero-index'
 
