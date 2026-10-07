@@ -14,8 +14,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/works" element={<SiteCanvasPage scope="works" label="Works" />} />
           <Route path="/works/:pieceId" element={<ArtworkPage scope="works" label="Works" />} />
-          <Route path="/colabs" element={<SiteCanvasPage scope="colabs" label="Colabs" />} />
-          <Route path="/colabs/:pieceId" element={<ArtworkPage scope="colabs" label="Colabs" />} />
+          <Route path="/colabs" element={<SiteCanvasPage scope="colabs" label="Other.W" />} />
+          <Route path="/colabs/:pieceId" element={<ArtworkPage scope="colabs" label="Other.W" />} />
           <Route path="/about" element={<AboutPage />} />
         </Route>
         <Route path="/admin/*" element={<AdminPage />} />

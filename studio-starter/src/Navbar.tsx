@@ -1,9 +1,9 @@
 import { Link, useMatch } from 'react-router-dom'
 
 const links = [
-  { to: '/works', label: 'work' },
-  { to: '/colabs', label: 'other w' },
-  { to: '/about', label: 'about' },
+  { to: '/works', label: 'Works' },
+  { to: '/colabs', label: 'Other.W' },
+  { to: '/about', label: 'About' },
 ] as const
 
 export function Navbar() {
