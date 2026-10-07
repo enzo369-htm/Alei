@@ -72,6 +72,7 @@ test('PUT guarda título, ficha y Sold de la pieza', () => {
             mediaId: '00000000-0000-4000-8000-0000000000aa',
             title: 'Night field',
             ficha: 'Oil on canvas\n40 × 50 cm',
+            text: 'A note about the painting.',
             availability: 'sold',
             x: 10,
             y: 12,
@@ -88,6 +89,7 @@ test('PUT guarda título, ficha y Sold de la pieza', () => {
   assert.equal(piece.id, '00000000-0000-4000-8000-0000000000bb')
   assert.equal(piece.title, 'Night field')
   assert.equal(piece.ficha, 'Oil on canvas\n40 × 50 cm')
+  assert.equal(piece.text, 'A note about the painting.')
   assert.equal(piece.availability, 'sold')
   assert.equal(piece.slides, undefined)
 })

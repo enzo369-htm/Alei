@@ -20,6 +20,7 @@ export type ParsedPiece = {
   width: number
   title: string
   ficha: string
+  text: string
   availability: PieceAvailability
   /** Undefined means the client did not send slides, so the stored ones stay. */
   slides?: ParsedSlide[]
@@ -93,6 +94,7 @@ export function parseCanvasPut(
         width: clampNum(piece.width, 5, 90, 24),
         title: clip(asText(piece.title), TITLE_MAX),
         ficha: clip(asText(piece.ficha), FICHA_MAX),
+        text: clip(asText(piece.text), FICHA_MAX),
         availability: availabilityOf(piece.availability),
         ...(slides.slides ? { slides: slides.slides } : {}),
       })

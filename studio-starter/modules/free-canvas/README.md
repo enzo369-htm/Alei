@@ -2,7 +2,7 @@
 
 Módulo de **lienzo libre** + **texto corto**. En el motor viene cableado como demo (`/canvas`), igual que Editorial y Bio. Si un cliente no lo usa, se sacan las rutas y el link; `rsync --exclude modules` **no** lo apaga.
 
-No es una receta. No hay i18n, hero ni tabla `sections`. Cada pieza puede llevar título, ficha y Available/Sold. Un `scope` (texto tipo slug, p. ej. `demo` o `works`) agrupa los bloques de una pantalla.
+No es una receta. No hay i18n, hero ni tabla `sections`. Cada pieza puede llevar título, medidas y técnica, texto y Available/Sold. En la ficha pública de Works esos tres textos salen siempre igual: título en negrita a 30px, medidas y técnica en cursiva a 20px, texto normal a 20px. El admin no elige la fuente. Un `scope` (texto tipo slug, p. ej. `demo` o `works`) agrupa los bloques de una pantalla.
 
 ## Qué hay
 

@@ -41,6 +41,7 @@ type PlacementRow = {
   z_index: number
   title: string
   ficha: string
+  piece_text: string
   availability: PieceAvailability
   url: string | null
   media_width: number | null
@@ -67,6 +68,7 @@ export type CanvasPiece = {
   z: number
   title: string
   ficha: string
+  text: string
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]
@@ -131,6 +133,7 @@ function pieceOf(row: PlacementRow): CanvasPiece {
     z: row.z_index,
     title: row.title ?? '',
     ficha: row.ficha ?? '',
+    text: row.piece_text ?? '',
     availability: row.availability === 'sold' ? 'sold' : 'available',
     media,
     slides: slidesFrom(row.slides),
@@ -180,7 +183,7 @@ async function loadScope(scope: string, withSlides: boolean) {
     ? ((await db`
         select
           p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
-          p.title, p.ficha, p.availability,
+          p.title, p.ficha, p.piece_text, p.availability,
           m.url, m.width as media_width, m.height as media_height,
           m.mime, m.variants,
           (
@@ -212,7 +215,7 @@ async function loadScope(scope: string, withSlides: boolean) {
     : ((await db`
         select
           p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
-          p.title, p.ficha, p.availability,
+          p.title, p.ficha, p.piece_text, p.availability,
           m.url, m.width as media_width, m.height as media_height,
           m.mime, m.variants
         from canvas_placements p
@@ -271,6 +274,7 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
           z_index = ${z},
           title = ${piece.title},
           ficha = ${piece.ficha},
+          piece_text = ${piece.text},
           availability = ${piece.availability}
         where id = ${piece.id} and canvas_id = ${block.id}
       `
@@ -279,11 +283,11 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
     } else {
       const inserted = (await db`
         insert into canvas_placements (
-          canvas_id, media_id, x, y, width, z_index, title, ficha, availability
+          canvas_id, media_id, x, y, width, z_index, title, ficha, piece_text, availability
         )
         values (
           ${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z},
-          ${piece.title}, ${piece.ficha}, ${piece.availability}
+          ${piece.title}, ${piece.ficha}, ${piece.text}, ${piece.availability}
         )
         returning id
       `) as { id: string }[]

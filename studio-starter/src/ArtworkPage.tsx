@@ -7,12 +7,13 @@ import { site } from './site.config'
 import '@fontsource-variable/inter/wght-italic.css'
 
 const WORKS_TEST_EMAIL = 'prueba@alei.com'
-const WORKS_TEST_TEXT = 'pon texto prueba'
-const MEASURE_RE = /\d[\d.,]*\s*(?:x|×|X)\s*\d|\d[\d.,]*\s*cm\b/i
-const DATE_RE = /^(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|ene|abr|ago|dic)[a-z]*\s*\d{2,4}$/i
 
-function techniqueLabel(line: string) {
-  return line.replace(/\s*\(\s*enmarcado\s*\)/gi, '').replace(/\s{2,}/g, ' ').trim()
+function sheetLabel(value: string) {
+  return value
+    .split('\n')
+    .map((line) => line.replace(/\s*\(\s*enmarcado\s*\)/gi, '').replace(/[ \t]{2,}/g, ' ').trimEnd())
+    .join('\n')
+    .trim()
 }
 
 function mailHref(title: string, email: string) {
@@ -22,32 +23,6 @@ function mailHref(title: string, email: string) {
   const subject = encodeURIComponent(`I'm interested in the work ${work}`)
   const body = encodeURIComponent(`I'm interested in the work ${work}.`)
   return `mailto:${clean}?subject=${subject}&body=${body}`
-}
-
-/** The admin stores one ficha. Size lines are medidas, the next line is técnica, the rest is the text. */
-function sheetOf(ficha: string) {
-  const lines = ficha
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .flatMap((line) =>
-      MEASURE_RE.test(line) && line.includes(',')
-        ? line.split(',').map((part) => part.trim()).filter(Boolean)
-        : [line],
-    )
-  const measures = lines.filter((line) => MEASURE_RE.test(line))
-  const date = lines.filter((line) => DATE_RE.test(line)).join('\n')
-  const rest = lines.filter((line) => !MEASURE_RE.test(line) && !DATE_RE.test(line))
-  const sized = { measures: measures.join('\n'), date }
-  if (rest.length === 0) return { ...sized, technique: '', text: '' }
-  if (rest.length === 1 && rest[0].length > 80) {
-    return { ...sized, technique: '', text: rest[0] }
-  }
-  return {
-    ...sized,
-    technique: rest[0] ?? '',
-    text: rest.slice(1).join('\n'),
-  }
 }
 
 type FrameSlide = {
@@ -113,8 +88,8 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
 }
 
 function WorksSheet({ piece }: { piece: CanvasPiece }) {
-  const sheet = sheetOf(piece.ficha)
-  const technique = techniqueLabel(sheet.technique)
+  const sheet = sheetLabel(piece.ficha)
+  const text = piece.text.trim()
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
 
@@ -125,10 +100,8 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
       </div>
       <div className="artwork__copy">
         {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
-        {sheet.measures ? <p className="artwork__measures">{sheet.measures}</p> : null}
-        {technique ? <p className="artwork__technique">{technique}</p> : null}
-        {sheet.date ? <p className="artwork__date">{sheet.date}</p> : null}
-        <p className="artwork__text">{sheet.text || WORKS_TEST_TEXT}</p>
+        {sheet ? <p className="artwork__sheet">{sheet}</p> : null}
+        {text ? <p className="artwork__text">{text}</p> : null}
         <p className="artwork__foot">
           {sold ? (
             <span className="artwork__status">sold</span>
@@ -199,6 +172,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
       <div className="artwork__meta">
         {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
         {piece.ficha ? <p className="artwork__ficha">{piece.ficha}</p> : null}
+        {piece.text ? <p className="artwork__ficha">{piece.text}</p> : null}
         <p className="artwork__status">{status}</p>
         {mail ? (
           <a className="artwork__mail" href={mail}>

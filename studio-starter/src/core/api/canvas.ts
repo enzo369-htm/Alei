@@ -20,6 +20,7 @@ export type CanvasPiece = {
   z: number
   title: string
   ficha: string
+  text: string
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]

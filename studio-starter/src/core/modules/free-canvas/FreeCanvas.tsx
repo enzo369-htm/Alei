@@ -37,6 +37,7 @@ function toPieces(items: CanvasItem[], previous: CanvasPiece[]): CanvasPiece[] {
       mediaId: prior?.mediaId ?? '',
       title: prior?.title ?? '',
       ficha: prior?.ficha ?? '',
+      text: prior?.text ?? '',
       availability: prior?.availability ?? 'available',
       media: item.media ?? prior?.media ?? null,
       slides: prior?.slides ?? [],

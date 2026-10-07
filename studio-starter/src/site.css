@@ -356,18 +356,16 @@ body,
   max-width: 380px;
   margin: 0 0 4px;
   color: #000000;
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 30px;
+  font-weight: 700;
   font-style: normal;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.15;
   text-transform: none;
   white-space: normal;
 }
 
-.artwork--works .artwork__measures,
-.artwork--works .artwork__technique,
-.artwork--works .artwork__date,
+.artwork--works .artwork__sheet,
 .artwork--works .artwork__text {
   width: 100%;
   max-width: 380px;
@@ -377,18 +375,16 @@ body,
   white-space: pre-wrap;
 }
 
-.artwork--works .artwork__measures,
-.artwork--works .artwork__technique,
-.artwork--works .artwork__date {
+.artwork--works .artwork__sheet {
   margin: 0;
-  font-size: 16px;
+  font-size: 20px;
   font-style: italic;
   line-height: 1.3;
 }
 
 .artwork--works .artwork__text {
   margin: 25px 0 0;
-  font-size: 16px;
+  font-size: 20px;
   font-style: normal;
   line-height: 1.5;
 }
@@ -447,9 +443,7 @@ body,
   }
 
   .artwork--works .artwork__title,
-  .artwork--works .artwork__measures,
-  .artwork--works .artwork__technique,
-  .artwork--works .artwork__date,
+  .artwork--works .artwork__sheet,
   .artwork--works .artwork__text {
     max-width: 100%;
   }

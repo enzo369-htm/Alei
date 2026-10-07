@@ -70,7 +70,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const selectedPiece = pieceOf(blocks, selected)
 
   function patchSelected(
-    patch: Partial<Pick<CanvasPiece, 'title' | 'ficha' | 'availability' | 'slides'>>,
+    patch: Partial<Pick<CanvasPiece, 'title' | 'ficha' | 'text' | 'availability' | 'slides'>>,
   ) {
     if (!selected) return
     markDirty(
@@ -248,6 +248,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           z: host?.pieces.length ?? 0,
           title: '',
           ficha: '',
+          text: '',
           availability: 'available',
           slides: [],
         }
@@ -310,6 +311,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
         <div className="admin-piece-sheet">
           <label className="admin-login__label" htmlFor="piece-title">
             Título
+            <span className="admin-piece-sheet__note">Negrita, 30px</span>
             <input
               id="piece-title"
               className="admin-login__input"
@@ -318,13 +320,25 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             />
           </label>
           <label className="admin-login__label" htmlFor="piece-ficha">
-            Ficha técnica
+            Medidas y técnica
+            <span className="admin-piece-sheet__note">Cursiva, 20px</span>
             <textarea
               id="piece-ficha"
               className="admin-login__input admin-textarea"
-              rows={2}
+              rows={3}
               value={selectedPiece.ficha}
               onChange={(event) => patchSelected({ ficha: event.target.value })}
+            />
+          </label>
+          <label className="admin-login__label" htmlFor="piece-text">
+            Texto
+            <span className="admin-piece-sheet__note">Normal, 20px</span>
+            <textarea
+              id="piece-text"
+              className="admin-login__input admin-textarea"
+              rows={4}
+              value={selectedPiece.text}
+              onChange={(event) => patchSelected({ text: event.target.value })}
             />
           </label>
           <div className="admin-piece-sheet__avail">
