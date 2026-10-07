@@ -7,14 +7,42 @@
   gap: 0.7rem;
 }
 
+.studio-canvas__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem 1rem;
+}
+
 .studio-canvas__height {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 0.7rem;
+  min-width: 12rem;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mute);
+}
+
+.studio-canvas__magnet {
+  margin-left: auto;
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.studio-canvas__magnet.is-on {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: #f4f1ea;
 }
 
 .studio-canvas__height input {
@@ -42,6 +70,7 @@
 .studio-canvas__item {
   position: absolute;
   cursor: move;
+  touch-action: none;
 }
 
 .studio-canvas__item.is-selected {
@@ -66,6 +95,72 @@
   background: var(--ink);
   cursor: se-resize;
   transform: translate(50%, 50%);
+}
+
+.studio-canvas__guide,
+.studio-canvas__gap {
+  position: absolute;
+  z-index: 25;
+  background: #1f8a4c;
+  pointer-events: none;
+}
+
+.studio-canvas__guide--v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.studio-canvas__guide--h {
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+
+.studio-canvas__gap--x {
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.studio-canvas__gap--x::before,
+.studio-canvas__gap--x::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 9px;
+  background: inherit;
+}
+
+.studio-canvas__gap--x::before {
+  left: 0;
+}
+
+.studio-canvas__gap--x::after {
+  right: 0;
+}
+
+.studio-canvas__gap--y {
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.studio-canvas__gap--y::before,
+.studio-canvas__gap--y::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  width: 9px;
+  height: 1px;
+  background: inherit;
+}
+
+.studio-canvas__gap--y::before {
+  top: 0;
+}
+
+.studio-canvas__gap--y::after {
+  bottom: 0;
 }
 
 .studio-viewer__desktop {
