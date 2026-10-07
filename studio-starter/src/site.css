@@ -53,6 +53,7 @@ body,
 }
 
 .site-nav__brand {
+  font-size: 1.08em;
   letter-spacing: 0.5px;
 }
 
