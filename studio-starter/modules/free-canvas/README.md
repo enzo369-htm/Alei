@@ -40,6 +40,10 @@ PUT actualiza **solo los bloques listados** y reemplaza las piezas de **esos** i
 
 Máximo 4 bloques de cada kind por scope (el conteo es de app; dos POST a la vez pueden pasar de 4).
 
+## Fotos extra de una obra
+
+La imagen del placement es la del lienzo. `canvas_piece_slides` (`db/008_piece_slides.sql`) guarda hasta 12 fotos que solo entran en el carrusel de la ficha, después de la foto del lienzo. En Works, al seleccionar la pintura, el admin las suma con «Agregar imagen». No se posicionan en el free canvas. Si el PUT no manda `slides`, las que ya están no se tocan. Un array vacío las borra.
+
 ## Qué no trae (a propósito)
 
 - i18n

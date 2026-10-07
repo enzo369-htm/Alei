@@ -6,6 +6,12 @@ export const FICHA_MAX = 4000
 
 export type PieceAvailability = 'available' | 'sold'
 
+export const SLIDE_MAX = 12
+
+export type ParsedSlide = {
+  mediaId: string
+}
+
 export type ParsedPiece = {
   id?: string
   mediaId: string
@@ -15,6 +21,8 @@ export type ParsedPiece = {
   title: string
   ficha: string
   availability: PieceAvailability
+  /** Undefined means the client did not send slides, so the stored ones stay. */
+  slides?: ParsedSlide[]
 }
 
 function availabilityOf(value: unknown): PieceAvailability {
@@ -74,6 +82,8 @@ export function parseCanvasPut(
       const piece = pieceRaw as Record<string, unknown>
       const mediaId = asText(piece.mediaId)
       if (!isUuid(mediaId)) return { ok: false, error: 'mediaId inválido' }
+      const slides = slidesOf(piece.slides)
+      if (!slides.ok) return slides
       const pieceId = asText(piece.id)
       pieces.push({
         id: isUuid(pieceId) ? pieceId : undefined,
@@ -84,6 +94,7 @@ export function parseCanvasPut(
         title: clip(asText(piece.title), TITLE_MAX),
         ficha: clip(asText(piece.ficha), FICHA_MAX),
         availability: availabilityOf(piece.availability),
+        ...(slides.slides ? { slides: slides.slides } : {}),
       })
     }
 
@@ -100,6 +111,31 @@ export function parseCanvasPut(
   return { ok: true, blocks: parsed }
 }
 
+function slidesOf(
+  value: unknown,
+): { ok: true; slides: ParsedSlide[] | undefined } | { ok: false; error: string } {
+  if (value === undefined) return { ok: true, slides: undefined }
+  if (!Array.isArray(value)) return { ok: false, error: 'slides inválido' }
+  if (value.length > SLIDE_MAX) return { ok: false, error: `Máximo ${SLIDE_MAX} imágenes extra` }
+  const slides: ParsedSlide[] = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') return { ok: false, error: 'slide inválido' }
+    const mediaId = asText((raw as Record<string, unknown>).mediaId)
+    if (!isUuid(mediaId)) return { ok: false, error: 'mediaId inválido' }
+    slides.push({ mediaId })
+  }
+  return { ok: true, slides }
+}
+
 export function mediaIdsOf(blocks: ParsedBlock[]) {
-  return [...new Set(blocks.flatMap((block) => block.pieces.map((piece) => piece.mediaId)))]
+  return [
+    ...new Set(
+      blocks.flatMap((block) =>
+        block.pieces.flatMap((piece) => [
+          piece.mediaId,
+          ...(piece.slides ?? []).map((slide) => slide.mediaId),
+        ]),
+      ),
+    ),
+  ]
 }

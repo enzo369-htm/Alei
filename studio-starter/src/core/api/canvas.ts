@@ -3,6 +3,13 @@ import { request } from './client.ts'
 
 export type PieceAvailability = 'available' | 'sold'
 
+export type PieceSlide = {
+  id: string
+  mediaId: string
+  src: string
+  media: MediaRecord | null
+}
+
 export type CanvasPiece = {
   id: string
   mediaId: string
@@ -15,6 +22,7 @@ export type CanvasPiece = {
   ficha: string
   availability: PieceAvailability
   media: MediaRecord | null
+  slides: PieceSlide[]
 }
 
 export type CanvasBlock = {
@@ -33,8 +41,9 @@ export type CanvasScopePayload = {
   blocks: CanvasBlock[]
 }
 
-export async function apiGetCanvas(scope: string) {
-  return request<CanvasScopePayload>(`/api/canvas/${scope}`)
+export async function apiGetCanvas(scope: string, options?: { slides?: boolean }) {
+  const query = options?.slides ? '?slides=1' : ''
+  return request<CanvasScopePayload>(`/api/canvas/${scope}${query}`)
 }
 
 export async function apiAddCanvasBlock(scope: string, kind: 'canvas' | 'text') {
