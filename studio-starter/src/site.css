@@ -262,7 +262,7 @@ body,
   column-gap: 10px;
   row-gap: 0;
   min-height: 0;
-  padding: 0 0 100px 30px;
+  padding: 10px 0 100px 30px;
   box-sizing: border-box;
 }
 
@@ -437,7 +437,7 @@ body,
     grid-template-areas:
       'image'
       'copy';
-    padding: 0 20px 80px;
+    padding: 10px 20px 80px;
     row-gap: 10px;
   }
 
