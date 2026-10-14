@@ -53,6 +53,7 @@ body,
 }
 
 .site-nav__brand {
+  font-size: 1.08em;
   letter-spacing: 0.5px;
 }
 
@@ -303,6 +304,7 @@ body,
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: left center;
 }
 
 .artwork--works .artwork__nav {
