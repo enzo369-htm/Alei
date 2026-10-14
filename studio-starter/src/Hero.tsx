@@ -9,8 +9,8 @@ const FLOWERS = ['✿', '❀']
  */
 const FLOWER_TURN = 15
 
-/** Del más grande al más chico, en px. El 18 es el tamaño del medio. */
-const FLOWER_PX = [28, 18, 15, 10] as const
+/** Del más grande al más chico, en px. */
+const FLOWER_PX = [18, 15.5, 12, 9] as const
 
 /**
  * Ocho órdenes. Cada una repite un tamaño y no va de grande a chico.
@@ -27,7 +27,7 @@ const SIZE_SEQUENCES = [
   [3, 0, 2, 1, 3],
 ] as const
 
-/** Tamaño 2, el actual. Los otros tres salen de este. */
+/** 18 px del emoji equivalen a la imagen de 65 px. */
 const FLOWER_MARK = 18
 const FLOWER_IMAGE = 65
 

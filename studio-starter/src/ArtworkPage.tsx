@@ -56,22 +56,24 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
   }
 
   return (
-    <div className="artwork__frame">
-      <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
-        {slides.map((slide, slideIndex) => (
-          <div key={slide.id} className="artwork__slide">
-            {slide.media ? (
-              <Picture
-                media={slide.media}
-                sizes="(max-width: 800px) 100vw, 850px"
-                alt={piece.title}
-                loading={slideIndex === index ? 'eager' : 'lazy'}
-              />
-            ) : (
-              <img src={slide.src} alt={piece.title} loading={slideIndex === index ? 'eager' : 'lazy'} />
-            )}
-          </div>
-        ))}
+    <>
+      <div className="artwork__frame">
+        <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
+          {slides.map((slide, slideIndex) => (
+            <div key={slide.id} className="artwork__slide">
+              {slide.media ? (
+                <Picture
+                  media={slide.media}
+                  sizes="(max-width: 800px) 100vw, 45vw"
+                  alt={piece.title}
+                  loading={slideIndex === index ? 'eager' : 'lazy'}
+                />
+              ) : (
+                <img src={slide.src} alt={piece.title} loading={slideIndex === index ? 'eager' : 'lazy'} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
         <span className="artwork__arrow" aria-hidden="true">
@@ -83,7 +85,7 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
           ›
         </span>
       </button>
-    </div>
+    </>
   )
 }
 

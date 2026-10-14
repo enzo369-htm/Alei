@@ -2,7 +2,7 @@ import { Link, useMatch } from 'react-router-dom'
 
 const links = [
   { to: '/works', label: 'works' },
-  { to: '/colabs', label: 'other w' },
+  { to: '/colabs', label: 'more' },
   { to: '/about', label: 'about' },
 ] as const
 
