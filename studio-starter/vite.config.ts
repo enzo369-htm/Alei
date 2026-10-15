@@ -13,5 +13,8 @@ export default defineConfig(({ mode }) => {
   return {
     root,
     plugins: [react(), localApiPlugin()],
+    server: {
+      allowedHosts: ['.ngrok-free.app', '.ngrok.app', '.ngrok.io', '.ngrok.dev'],
+    },
   }
 })

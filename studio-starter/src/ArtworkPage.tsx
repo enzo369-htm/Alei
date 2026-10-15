@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiGetCanvas, type CanvasPiece, type PieceSlide } from './core/api/canvas'
 import type { MediaRecord } from './core/images/types'
@@ -42,13 +42,120 @@ function frameSlides(piece: CanvasPiece): FrameSlide[] {
   return [...main, ...extra]
 }
 
-function WorkImage({ piece }: { piece: CanvasPiece }) {
+type ImageMeasure = {
+  edge: number
+  frame: number
+  gap: number
+  footTop: number
+  footLeft: number
+}
+
+function WorkImage({
+  piece,
+  onMeasure,
+}: {
+  piece: CanvasPiece
+  onMeasure: (measure: ImageMeasure | null) => void
+}) {
   const slides = frameSlides(piece)
   const [index, setIndex] = useState(0)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const onMeasureRef = useRef(onMeasure)
+  const shownIndex = useRef<number | null>(null)
+  const [imageEdge, setImageEdge] = useState<number | null>(null)
+
+  useEffect(() => {
+    onMeasureRef.current = onMeasure
+  }, [onMeasure])
 
   useEffect(() => {
     setIndex(0)
   }, [piece.id])
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+
+    const track = frame.querySelector('.artwork__track')
+    const durationValue = track ? getComputedStyle(track).transitionDuration : '0s'
+    const durationNumber = Number.parseFloat(durationValue) || 0
+    const duration = durationValue.trim().endsWith('ms') ? durationNumber / 1000 : durationNumber
+    let defer = shownIndex.current !== null && shownIndex.current !== index && duration > 0
+
+    const measure = () => {
+      const img = frame.querySelectorAll('.artwork__slide img')[index] as HTMLImageElement | undefined
+      if (!img?.naturalWidth || !img.naturalHeight || !frame.clientWidth || !frame.clientHeight) {
+        if (!defer) {
+          setImageEdge(null)
+          onMeasureRef.current(null)
+        }
+        return
+      }
+      const scale = Math.min(frame.clientWidth / img.naturalWidth, frame.clientHeight / img.naturalHeight)
+      const edge = img.naturalWidth * scale
+      const paintedH = img.naturalHeight * scale
+      const sheet = frame.closest('.artwork--works')
+      const gap = sheet ? Number.parseFloat(getComputedStyle(sheet).columnGap) || 0 : 0
+      const copy = sheet?.querySelector('.artwork__copy')
+      const foot = sheet?.querySelector('.artwork__foot')
+      const frameRect = frame.getBoundingClientRect()
+      const copyRect = copy?.getBoundingClientRect()
+      const paintedBottom = frameRect.top + (frame.clientHeight - paintedH) / 2 + paintedH
+      const label = foot?.querySelector('.artwork__status, .artwork__mail')
+      const labelNode = label ?? foot
+      let bottomInFoot = foot?.getBoundingClientRect().height ?? 0
+      if (labelNode && foot) {
+        const probe = document.createElement('span')
+        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;'
+        labelNode.appendChild(probe)
+        try {
+          bottomInFoot = probe.getBoundingClientRect().top - foot.getBoundingClientRect().top
+        } finally {
+          probe.remove()
+        }
+      }
+      const footTop = copyRect ? paintedBottom - copyRect.top - bottomInFoot : 0
+      const footLeft = copyRect ? frameRect.left + edge + 8 - copyRect.left : 0
+      if (defer) return
+      shownIndex.current = index
+      setImageEdge(edge)
+      onMeasureRef.current({ edge, frame: frame.clientWidth, gap, footTop, footLeft })
+    }
+
+    const onSlideEnd = (event: Event) => {
+      const transition = event as TransitionEvent
+      if (transition.propertyName !== 'transform') return
+      defer = false
+      measure()
+    }
+
+    measure()
+    const img = frame.querySelectorAll('.artwork__slide img')[index] as HTMLImageElement | undefined
+    img?.addEventListener('load', measure)
+    if (defer) track?.addEventListener('transitionend', onSlideEnd)
+    const fallback = defer ? window.setTimeout(() => onSlideEnd(new TransitionEvent('transitionend', { propertyName: 'transform' })), duration * 1000 + 80) : 0
+    const observer = new ResizeObserver(measure)
+    observer.observe(frame)
+    const sheet = frame.closest('.artwork--works')
+    const copy = sheet?.querySelector('.artwork__copy')
+    const foot = sheet?.querySelector('.artwork__foot')
+    if (copy) observer.observe(copy)
+    if (foot) observer.observe(foot)
+    let cancelled = false
+    const onFonts = () => {
+      if (!cancelled) measure()
+    }
+    void document.fonts?.ready.then(onFonts)
+    document.fonts?.addEventListener('loadingdone', onFonts)
+    return () => {
+      cancelled = true
+      img?.removeEventListener('load', measure)
+      track?.removeEventListener('transitionend', onSlideEnd)
+      window.clearTimeout(fallback)
+      document.fonts?.removeEventListener('loadingdone', onFonts)
+      observer.disconnect()
+    }
+  }, [index, piece.id])
 
   function step(delta: number) {
     if (slides.length < 2) return
@@ -57,14 +164,14 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
 
   return (
     <>
-      <div className="artwork__frame">
+      <div className="artwork__frame" ref={frameRef}>
         <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
           {slides.map((slide, slideIndex) => (
             <div key={slide.id} className="artwork__slide">
               {slide.media ? (
                 <Picture
                   media={slide.media}
-                  sizes="(max-width: 800px) 100vw, 45vw"
+                  sizes="(max-width: 800px) 100vw, 48vw"
                   alt={piece.title}
                   loading={slideIndex === index ? 'eager' : 'lazy'}
                 />
@@ -75,16 +182,26 @@ function WorkImage({ piece }: { piece: CanvasPiece }) {
           ))}
         </div>
       </div>
-      <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
-        <span className="artwork__arrow" aria-hidden="true">
-          ‹
-        </span>
-      </button>
-      <button type="button" className="artwork__nav artwork__nav--next" aria-label="Next image" onClick={() => step(1)}>
-        <span className="artwork__arrow" aria-hidden="true">
-          ›
-        </span>
-      </button>
+      {slides.length > 1 ? (
+        <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
+          <span className="artwork__arrow" aria-hidden="true">
+            ‹
+          </span>
+        </button>
+      ) : null}
+      {slides.length > 1 ? (
+        <button
+          type="button"
+          className="artwork__nav artwork__nav--next"
+          aria-label="Next image"
+          style={imageEdge != null ? { left: `${imageEdge}px` } : undefined}
+          onClick={() => step(1)}
+        >
+          <span className="artwork__arrow" aria-hidden="true">
+            ›
+          </span>
+        </button>
+      ) : null}
     </>
   )
 }
@@ -94,11 +211,22 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
   const text = piece.text.trim()
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
+  const [measure, setMeasure] = useState<ImageMeasure | null>(null)
 
   return (
-    <article className="artwork artwork--works">
+    <article
+      className={measure ? 'artwork artwork--works artwork--placed' : 'artwork artwork--works'}
+      style={
+        measure
+          ? {
+              ['--foot-top' as string]: `${measure.footTop}px`,
+              ['--foot-left' as string]: `${measure.footLeft}px`,
+            }
+          : undefined
+      }
+    >
       <div className="artwork__stage">
-        <WorkImage piece={piece} />
+        <WorkImage piece={piece} onMeasure={setMeasure} />
       </div>
       <div className="artwork__copy">
         {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
