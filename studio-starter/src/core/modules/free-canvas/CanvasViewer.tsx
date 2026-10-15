@@ -10,10 +10,18 @@ export type CanvasViewerProps = {
   renderCaption?: (item: CanvasItem) => ReactNode
   /** Works: the hover label is only “sold”. Available stays blank. */
   hideAvailable?: boolean
+  /** Works: title above the painting, sold below, both on hover. */
+  hoverChrome?: boolean
 }
 
 /** Mismo lienzo que el admin: posiciones en %, alto = ancho × ratio. */
-export function CanvasViewer({ items, heightRatio, renderCaption, hideAvailable = false }: CanvasViewerProps) {
+export function CanvasViewer({
+  items,
+  heightRatio,
+  renderCaption,
+  hideAvailable = false,
+  hoverChrome = false,
+}: CanvasViewerProps) {
   const positioned = withDefaultPositions(items)
   const ratio = heightRatio ?? 1.2
 
@@ -23,7 +31,13 @@ export function CanvasViewer({ items, heightRatio, renderCaption, hideAvailable 
     <div className="studio-viewer">
       <div className="studio-viewer__desktop" style={{ paddingTop: `${ratio * 100}%` }}>
         {positioned.map((item) => (
-          <DesktopItem key={item.id} item={item} renderCaption={renderCaption} hideAvailable={hideAvailable} />
+          <DesktopItem
+            key={item.id}
+            item={item}
+            renderCaption={renderCaption}
+            hideAvailable={hideAvailable}
+            hoverChrome={hoverChrome}
+          />
         ))}
       </div>
     </div>
@@ -40,14 +54,18 @@ function DesktopItem({
   item,
   renderCaption,
   hideAvailable,
+  hoverChrome,
 }: {
   item: CanvasItem
   renderCaption?: (item: CanvasItem) => ReactNode
   hideAvailable: boolean
+  hoverChrome: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const caption = renderCaption?.(item)
   const status = statusOf(item, hideAvailable)
+  const title = hoverChrome ? item.label?.trim() ?? '' : ''
+  const statusClass = hoverChrome ? 'studio-viewer__status studio-viewer__status--edge' : 'studio-viewer__status'
   const image = item.media ? (
     <Picture media={item.media} sizes={`${Math.round(item.width)}vw`} alt={item.label || ''} />
   ) : (
@@ -57,12 +75,12 @@ function DesktopItem({
   const body = item.href ? (
     <Link to={item.href} className="studio-viewer__hit">
       {image}
-      {status ? <span className="studio-viewer__status">{status}</span> : null}
+      {status ? <span className={statusClass}>{status}</span> : null}
     </Link>
   ) : (
     <>
       {image}
-      {status ? <span className="studio-viewer__status">{status}</span> : null}
+      {status ? <span className={statusClass}>{status}</span> : null}
     </>
   )
 
@@ -78,6 +96,7 @@ function DesktopItem({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {title ? <span className="studio-viewer__title">{title}</span> : null}
       {body}
       {caption && hovered && <div className="studio-viewer__caption">{caption}</div>}
     </div>

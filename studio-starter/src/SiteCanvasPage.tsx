@@ -57,6 +57,7 @@ export function SiteCanvasPage({ scope, label }: { scope: string; label: string 
             items={piecesOf(block, scope)}
             heightRatio={block.heightRatio}
             hideAvailable={scope === 'works'}
+            hoverChrome={scope === 'works'}
           />
         ),
       )}

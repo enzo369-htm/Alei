@@ -64,6 +64,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
   const fileForCanvas = useRef<string | null>(null)
+  const editGen = useRef(0)
 
   const textCount = blocks.filter((block) => block.kind === 'text').length
   const canvasCount = blocks.filter((block) => block.kind === 'canvas').length
@@ -107,19 +108,49 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   }, [refresh])
 
   function markDirty(next: CanvasBlock[]) {
+    editGen.current += 1
     setBlocks(next)
     setDirty(true)
     setStatus('Sin guardar')
   }
 
+  function updatePieceSlides(
+    canvasId: string,
+    pieceId: string,
+    update: (slides: PieceSlide[]) => PieceSlide[],
+  ) {
+    editGen.current += 1
+    setBlocks((prev) =>
+      prev.map((block) =>
+        block.id !== canvasId
+          ? block
+          : {
+              ...block,
+              pieces: block.pieces.map((piece) =>
+                piece.id === pieceId ? { ...piece, slides: update(piece.slides ?? []) } : piece,
+              ),
+            },
+      ),
+    )
+    setDirty(true)
+    setStatus('Sin guardar')
+  }
+
   async function onSave() {
-    if (!loaded || !dirty) return
+    if (!loaded || !dirty || saving || slideUploading) return
+    const generation = editGen.current
+    const snapshot = blocks
     setSaving(true)
     setError('')
     setStatus('Guardando…')
     try {
-      const saved = await apiSaveCanvas(scope, blocks)
-      setSelected((current) => remapSelected(blocks, saved.blocks, current))
+      const saved = await apiSaveCanvas(scope, snapshot)
+      if (editGen.current !== generation) {
+        setDirty(true)
+        setStatus('Sin guardar')
+        return
+      }
+      setSelected((current) => remapSelected(snapshot, saved.blocks, current))
       setBlocks(saved.blocks)
       setDirty(false)
       setStatus('Guardado')
@@ -138,7 +169,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     setError('')
     try {
       const { block } = await apiAddCanvasBlock(scope, kind)
-      setBlocks((prev) => [...prev, block])
+      setBlocks((prev) => (scope === 'works' && kind === 'canvas' ? [block, ...prev] : [...prev, block]))
       setStatus(kind === 'text' ? 'Texto agregado — guardá cuando lo edites' : 'Lienzo agregado')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agregar')
@@ -176,8 +207,9 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
 
   async function onAddSlides(files: File[]) {
     if (!selected || !selectedPiece || files.length === 0) return
-    const current = selectedPiece.slides ?? []
-    const room = SLIDE_MAX - current.length
+    const canvasId = selected.canvasId
+    const pieceId = selected.pieceId
+    const room = SLIDE_MAX - (selectedPiece.slides ?? []).length
     if (room <= 0) {
       setError(`Máximo ${SLIDE_MAX} imágenes extra`)
       return
@@ -197,10 +229,46 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           media,
         })
       }
-      patchSelected({ slides: [...current, ...added] })
+      updatePieceSlides(canvasId, pieceId, (slides) => {
+        const space = SLIDE_MAX - slides.length
+        return space > 0 ? [...slides, ...added.slice(0, space)] : slides
+      })
       setStatus('Imágenes agregadas — acordate de guardar')
     } catch (err) {
-      if (added.length > 0) patchSelected({ slides: [...current, ...added] })
+      if (added.length > 0) {
+        updatePieceSlides(canvasId, pieceId, (slides) => {
+          const space = SLIDE_MAX - slides.length
+          return space > 0 ? [...slides, ...added.slice(0, space)] : slides
+        })
+      }
+      setError(err instanceof Error ? err.message : 'No se pudo subir')
+      setStatus('')
+    } finally {
+      setSlideUploading(false)
+    }
+  }
+
+  async function onAddFirstSlide(file: File) {
+    if (!selected || !selectedPiece) return
+    const canvasId = selected.canvasId
+    const pieceId = selected.pieceId
+    if ((selectedPiece.slides ?? []).length >= SLIDE_MAX) {
+      setError(`Máximo ${SLIDE_MAX} imágenes extra`)
+      return
+    }
+    setSlideUploading(true)
+    setError('')
+    setStatus('Subiendo la imagen 1…')
+    try {
+      const prepared = await prepareVariants(file)
+      const media = await apiUploadMedia(prepared)
+      updatePieceSlides(canvasId, pieceId, (slides) =>
+        slides.length >= SLIDE_MAX
+          ? slides
+          : [{ id: `tmp-${media.id}`, mediaId: media.id, src: media.url, media }, ...slides],
+      )
+      setStatus('Imagen 1 agregada — acordate de guardar')
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir')
       setStatus('')
     } finally {
@@ -299,7 +367,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           <button
             type="button"
             className="admin-btn admin-btn--primary"
-            disabled={saving || !loaded || !dirty}
+            disabled={saving || slideUploading || !loaded || !dirty}
             onClick={() => void onSave()}
           >
             {saving ? 'Guardando…' : 'Guardar'}
@@ -364,13 +432,16 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             <div className="admin-piece-slides">
               <p className="admin-login__label">Otras imágenes</p>
               <p className="admin-piece-slides__hint">
-                Se ven en la ficha, en este orden. No entran en el lienzo.
+                Se ven en la ficha, en este orden. La imagen 1 es la primera. La del lienzo queda al final.
               </p>
               {(selectedPiece.slides ?? []).length > 0 && (
                 <ul className="admin-piece-slides__list">
                   {(selectedPiece.slides ?? []).map((slide, index) => (
-                    <li key={slide.id} className="admin-piece-slides__item">
-                      <img src={thumbSrc(slide)} alt="" />
+                    <li key={slide.id} className={`admin-piece-slides__item${index === 0 ? ' is-cover' : ''}`}>
+                      <div className="admin-piece-slides__frame">
+                        {index === 0 ? <span className="admin-piece-slides__cover">Imagen 1</span> : null}
+                        <img src={thumbSrc(slide)} alt="" />
+                      </div>
                       <div className="admin-piece-slides__tools">
                         <button type="button" className="admin-btn" disabled={index === 0} onClick={() => moveSlide(slide.id, -1)}>
                           ←
@@ -391,20 +462,35 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
                   ))}
                 </ul>
               )}
-              <label className={`admin-btn admin-upload admin-piece-slides__add${slideUploading ? ' is-busy' : ''}`}>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  disabled={slideUploading || (selectedPiece.slides ?? []).length >= SLIDE_MAX}
-                  onChange={(event) => {
-                    const files = [...(event.target.files ?? [])]
-                    event.target.value = ''
-                    void onAddSlides(files)
-                  }}
-                />
-                {slideUploading ? 'Subiendo…' : 'Agregar imagen'}
-              </label>
+              <div className="admin-piece-slides__actions">
+                <label className={`admin-btn admin-upload admin-piece-slides__add${slideUploading ? ' is-busy' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={slideUploading || (selectedPiece.slides ?? []).length >= SLIDE_MAX}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      event.target.value = ''
+                      if (file) void onAddFirstSlide(file)
+                    }}
+                  />
+                  {slideUploading ? 'Subiendo…' : 'Imagen 1'}
+                </label>
+                <label className={`admin-btn admin-upload admin-piece-slides__add${slideUploading ? ' is-busy' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    disabled={slideUploading || (selectedPiece.slides ?? []).length >= SLIDE_MAX}
+                    onChange={(event) => {
+                      const files = [...(event.target.files ?? [])]
+                      event.target.value = ''
+                      void onAddSlides(files)
+                    }}
+                  />
+                  {slideUploading ? 'Subiendo…' : 'Agregar imagen'}
+                </label>
+              </div>
             </div>
           )}
         </div>

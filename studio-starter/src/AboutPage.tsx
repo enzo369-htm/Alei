@@ -1,70 +1,41 @@
 import { useEffect, useState } from 'react'
 import { apiGetPage, type PageRecord } from './core/api/pages'
 import { Picture } from './core/images/Picture'
-import type { MediaRecord } from './core/images/types'
+import { site } from './site.config'
 
-type AboutSlide = {
-  id: string
-  media: MediaRecord
-}
-
-function aboutSlides(image: MediaRecord | null): AboutSlide[] {
-  if (!image?.url) return []
-  return [{ id: `main-${image.id}`, media: image }]
-}
-
-function AboutImage({ image, title }: { image: MediaRecord | null; title: string }) {
-  const slides = aboutSlides(image)
-  const [index, setIndex] = useState(0)
-
-  useEffect(() => {
-    setIndex(0)
-  }, [image?.id])
-
-  function step(delta: number) {
-    if (slides.length < 2) return
-    setIndex((current) => (current + delta + slides.length) % slides.length)
-  }
-
-  return (
-    <div className="artwork__frame">
-      <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
-        {slides.map((slide, slideIndex) => (
-          <div key={slide.id} className="artwork__slide">
-            <Picture
-              media={slide.media}
-              sizes="(max-width: 800px) 100vw, 850px"
-              alt={title}
-              loading={slideIndex === index ? 'eager' : 'lazy'}
-            />
-          </div>
-        ))}
-      </div>
-      <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
-        <span className="artwork__arrow" aria-hidden="true">
-          ‹
-        </span>
-      </button>
-      <button type="button" className="artwork__nav artwork__nav--next" aria-label="Next image" onClick={() => step(1)}>
-        <span className="artwork__arrow" aria-hidden="true">
-          ›
-        </span>
-      </button>
-    </div>
-  )
-}
+const ABOUT_EMAIL = 'prueba@alei.com'
+const ABOUT_INSTAGRAM = '@alei'
+const ABOUT_INSTAGRAM_URL = 'https://www.instagram.com/alei/'
 
 function AboutSheet({ page }: { page: PageRecord }) {
   const text = page.body.trim()
+  const email = site.contactEmail.trim() || ABOUT_EMAIL
 
   return (
-    <article className="artwork artwork--works artwork--about">
-      <div className="artwork__stage">
-        <AboutImage image={page.image} title={page.title} />
+    <article className="about-page">
+      <div className="about-page__copy">
+        {page.title ? <h1 className="about-page__title">{page.title}</h1> : null}
+        {text ? <p className="about-page__text">{text}</p> : null}
       </div>
-      <div className="artwork__copy">
-        {page.title ? <h1 className="artwork__title">{page.title}</h1> : null}
-        {text ? <p className="artwork__text">{text}</p> : null}
+      <div className="about-page__visual">
+        <div className="about-page__photo">
+          {page.image ? (
+            <Picture
+              media={page.image}
+              sizes="(max-width: 800px) 37vw, 17vw"
+              alt={page.title}
+              loading="eager"
+            />
+          ) : null}
+        </div>
+        <div className="about-page__info">
+          <a className="about-page__mail" href={`mailto:${email}`}>
+            {email}
+          </a>
+          <a className="about-page__social" href={ABOUT_INSTAGRAM_URL}>
+            {ABOUT_INSTAGRAM}
+          </a>
+        </div>
       </div>
     </article>
   )
@@ -91,15 +62,15 @@ export function AboutPage() {
 
   if (error) {
     return (
-      <div className="artwork artwork--works">
-        <p className="artwork__note">{error}</p>
+      <div className="about-page">
+        <p className="about-page__note">{error}</p>
       </div>
     )
   }
 
-  if (page === undefined) return <div className="artwork artwork--works" />
+  if (page === undefined) return <div className="about-page" />
 
-  if (!page) return <div className="artwork artwork--works" />
+  if (!page) return <div className="about-page" />
 
   return <AboutSheet page={page} />
 }

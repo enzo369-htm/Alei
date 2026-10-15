@@ -39,7 +39,7 @@ function frameSlides(piece: CanvasPiece): FrameSlide[] {
   const extra = (piece.slides ?? [])
     .filter((slide): slide is PieceSlide => Boolean(slide.media?.url || slide.src))
     .map((slide) => ({ id: slide.id, media: slide.media, src: slide.src }))
-  return [...main, ...extra]
+  return [...extra, ...main]
 }
 
 type ImageMeasure = {

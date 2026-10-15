@@ -329,13 +329,17 @@ export const canvasRoutes = [
       return fail(400, `Máximo ${MAX_PER_KIND} bloques de este tipo`)
     }
 
+    const newestFirst = scope === 'works' && kind === 'canvas'
+    const orderRows = newestFirst
+      ? ((await db`
+          select coalesce(min(sort_order), 1) - 1 as n from canvases where scope = ${scope}
+        `) as { n: number }[])
+      : ((await db`
+          select coalesce(max(sort_order), -1) + 1 as n from canvases where scope = ${scope}
+        `) as { n: number }[])
     const inserted = (await db`
       insert into canvases (scope, kind, sort_order)
-      values (
-        ${scope},
-        ${kind},
-        (select coalesce(max(sort_order), -1) + 1 from canvases where scope = ${scope})
-      )
+      values (${scope}, ${kind}, ${orderRows[0]?.n ?? 0})
       returning id, scope, kind, title, body, sort_order, height_ratio, visible
     `) as CanvasRow[]
     if (!inserted[0]) return fail(500, 'No se pudo crear el bloque')
