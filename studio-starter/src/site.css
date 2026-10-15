@@ -320,7 +320,7 @@ body,
   padding: 0;
   border: 0;
   background: transparent;
-  color: #000000;
+  color: rgba(80, 80, 80, 0.5);
   font-size: 42px;
   font-weight: 400;
   line-height: 1;
@@ -340,7 +340,7 @@ body,
 
 .artwork--works .artwork__arrow {
   display: block;
-  color: #000000;
+  color: rgba(80, 80, 80, 0.5);
   font-size: 42px;
   font-style: normal;
   font-weight: 400;
