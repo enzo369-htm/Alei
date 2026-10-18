@@ -8,10 +8,17 @@ import '@fontsource-variable/inter/wght-italic.css'
 
 const WORKS_TEST_EMAIL = 'prueba@alei.com'
 
+function isDateLine(line: string) {
+  return /^(?:ene(?:ro)?|feb(?:ruary|rero)?|mar(?:zo)?|abr(?:il)?|may(?:o)?|jun(?:io)?|jul(?:io)?|ago(?:sto)?|sep(?:t(?:iembre)?)?|oct(?:ubre)?|nov(?:iembre)?|dic(?:iembre)?|jan(?:uary)?|apr(?:il)?|aug(?:ust)?|dec(?:ember)?|march|june|july|september|october|november)\s*\d{4}$/i.test(
+    line.trim(),
+  )
+}
+
 function sheetLabel(value: string) {
   return value
     .split('\n')
     .map((line) => line.replace(/\s*\(\s*enmarcado\s*\)/gi, '').replace(/[ \t]{2,}/g, ' ').trimEnd())
+    .filter((line) => !isDateLine(line))
     .join('\n')
     .trim()
 }
@@ -43,9 +50,6 @@ function frameSlides(piece: CanvasPiece): FrameSlide[] {
 }
 
 type ImageMeasure = {
-  edge: number
-  frame: number
-  gap: number
   footTop: number
   footLeft: number
 }
@@ -61,8 +65,6 @@ function WorkImage({
   const [index, setIndex] = useState(0)
   const frameRef = useRef<HTMLDivElement>(null)
   const onMeasureRef = useRef(onMeasure)
-  const shownIndex = useRef<number | null>(null)
-  const [imageEdge, setImageEdge] = useState<number | null>(null)
 
   useEffect(() => {
     onMeasureRef.current = onMeasure
@@ -76,31 +78,16 @@ function WorkImage({
     const frame = frameRef.current
     if (!frame) return
 
-    const track = frame.querySelector('.artwork__track')
-    const durationValue = track ? getComputedStyle(track).transitionDuration : '0s'
-    const durationNumber = Number.parseFloat(durationValue) || 0
-    const duration = durationValue.trim().endsWith('ms') ? durationNumber / 1000 : durationNumber
-    let defer = shownIndex.current !== null && shownIndex.current !== index && duration > 0
-
     const measure = () => {
-      const img = frame.querySelectorAll('.artwork__slide img')[index] as HTMLImageElement | undefined
-      if (!img?.naturalWidth || !img.naturalHeight || !frame.clientWidth || !frame.clientHeight) {
-        if (!defer) {
-          setImageEdge(null)
-          onMeasureRef.current(null)
-        }
+      if (!frame.clientWidth || !frame.clientHeight) {
+        onMeasureRef.current(null)
         return
       }
-      const scale = Math.min(frame.clientWidth / img.naturalWidth, frame.clientHeight / img.naturalHeight)
-      const edge = img.naturalWidth * scale
-      const paintedH = img.naturalHeight * scale
       const sheet = frame.closest('.artwork--works')
-      const gap = sheet ? Number.parseFloat(getComputedStyle(sheet).columnGap) || 0 : 0
       const copy = sheet?.querySelector('.artwork__copy')
       const foot = sheet?.querySelector('.artwork__foot')
       const frameRect = frame.getBoundingClientRect()
       const copyRect = copy?.getBoundingClientRect()
-      const paintedBottom = frameRect.top + (frame.clientHeight - paintedH) / 2 + paintedH
       const label = foot?.querySelector('.artwork__status, .artwork__mail')
       const labelNode = label ?? foot
       let bottomInFoot = foot?.getBoundingClientRect().height ?? 0
@@ -114,26 +101,13 @@ function WorkImage({
           probe.remove()
         }
       }
-      const footTop = copyRect ? paintedBottom - copyRect.top - bottomInFoot : 0
-      const footLeft = copyRect ? frameRect.left + edge + 8 - copyRect.left : 0
-      if (defer) return
-      shownIndex.current = index
-      setImageEdge(edge)
-      onMeasureRef.current({ edge, frame: frame.clientWidth, gap, footTop, footLeft })
-    }
-
-    const onSlideEnd = (event: Event) => {
-      const transition = event as TransitionEvent
-      if (transition.propertyName !== 'transform') return
-      defer = false
-      measure()
+      const gap = sheet ? Number.parseFloat(getComputedStyle(sheet).columnGap) || 0 : 0
+      const footTop = copyRect ? frameRect.bottom - copyRect.top - bottomInFoot : 0
+      const footLeft = copyRect ? frameRect.right + gap - copyRect.left : 0
+      onMeasureRef.current({ footTop, footLeft })
     }
 
     measure()
-    const img = frame.querySelectorAll('.artwork__slide img')[index] as HTMLImageElement | undefined
-    img?.addEventListener('load', measure)
-    if (defer) track?.addEventListener('transitionend', onSlideEnd)
-    const fallback = defer ? window.setTimeout(() => onSlideEnd(new TransitionEvent('transitionend', { propertyName: 'transform' })), duration * 1000 + 80) : 0
     const observer = new ResizeObserver(measure)
     observer.observe(frame)
     const sheet = frame.closest('.artwork--works')
@@ -149,13 +123,10 @@ function WorkImage({
     document.fonts?.addEventListener('loadingdone', onFonts)
     return () => {
       cancelled = true
-      img?.removeEventListener('load', measure)
-      track?.removeEventListener('transitionend', onSlideEnd)
-      window.clearTimeout(fallback)
       document.fonts?.removeEventListener('loadingdone', onFonts)
       observer.disconnect()
     }
-  }, [index, piece.id])
+  }, [piece.id])
 
   function step(delta: number) {
     if (slides.length < 2) return
@@ -171,7 +142,7 @@ function WorkImage({
               {slide.media ? (
                 <Picture
                   media={slide.media}
-                  sizes="(max-width: 800px) 100vw, 48vw"
+                  sizes="(max-width: 800px) 100vw, 50vw"
                   alt={piece.title}
                   loading={slideIndex === index ? 'eager' : 'lazy'}
                 />
@@ -190,13 +161,7 @@ function WorkImage({
         </button>
       ) : null}
       {slides.length > 1 ? (
-        <button
-          type="button"
-          className="artwork__nav artwork__nav--next"
-          aria-label="Next image"
-          style={imageEdge != null ? { left: `${imageEdge}px` } : undefined}
-          onClick={() => step(1)}
-        >
+        <button type="button" className="artwork__nav artwork__nav--next" aria-label="Next image" onClick={() => step(1)}>
           <span className="artwork__arrow" aria-hidden="true">
             ›
           </span>
@@ -206,24 +171,88 @@ function WorkImage({
   )
 }
 
+function letterInk(el: HTMLElement) {
+  const style = getComputedStyle(el)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.font = style.font
+  ;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = style.letterSpacing
+  const metrics = ctx.measureText(el.textContent ?? '')
+  const rect = el.getBoundingClientRect()
+  return {
+    left: rect.left - metrics.actualBoundingBoxLeft,
+    right: rect.left + metrics.actualBoundingBoxRight,
+  }
+}
+
+function readArtworkSystem(): 1 | 2 {
+  try {
+    return window.sessionStorage.getItem('artwork-system') === '2' ? 2 : 1
+  } catch {
+    return 1
+  }
+}
+
 function WorksSheet({ piece }: { piece: CanvasPiece }) {
   const sheet = sheetLabel(piece.ficha)
   const text = piece.text.trim()
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
   const [measure, setMeasure] = useState<ImageMeasure | null>(null)
+  const [system, setSystem] = useState<1 | 2>(readArtworkSystem)
+  const [edges, setEdges] = useState<{ imageLeft: number; textEdge: number } | null>(null)
+  const sheetRef = useRef<HTMLElement>(null)
+
+  function chooseSystem(next: 1 | 2) {
+    try {
+      window.sessionStorage.setItem('artwork-system', String(next))
+    } catch {
+      // The toggle still applies on this page when storage is blocked.
+    }
+    setSystem(next)
+  }
+
+  useEffect(() => {
+    const align = () => {
+      const alei = document.querySelector<HTMLElement>('.site-nav__brand')
+      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent.trim() === 'about')
+      if (!alei || !about) return
+      const a = letterInk(alei)
+      const t = letterInk(about)
+      const pageRight = sheetRef.current?.getBoundingClientRect().right
+      if (!a || !t || pageRight == null) return
+      const next = { imageLeft: a.left, textEdge: pageRight - t.right }
+      setEdges((current) =>
+        current && Math.abs(current.imageLeft - next.imageLeft) < 0.1 && Math.abs(current.textEdge - next.textEdge) < 0.1
+          ? current
+          : next,
+      )
+    }
+    align()
+    window.addEventListener('resize', align)
+    void document.fonts?.ready.then(align)
+    return () => window.removeEventListener('resize', align)
+  }, [])
 
   return (
     <article
-      className={measure ? 'artwork artwork--works artwork--placed' : 'artwork artwork--works'}
-      style={
-        measure
+      ref={sheetRef}
+      className={measure ? `artwork artwork--works artwork--system-${system} artwork--placed` : `artwork artwork--works artwork--system-${system}`}
+      style={{
+        ...(edges
+          ? {
+              ['--image-left' as string]: `${edges.imageLeft}px`,
+              ['--text-edge' as string]: `${edges.textEdge}px`,
+            }
+          : null),
+        ...(measure
           ? {
               ['--foot-top' as string]: `${measure.footTop}px`,
               ['--foot-left' as string]: `${measure.footLeft}px`,
             }
-          : undefined
-      }
+          : null),
+      }}
     >
       <div className="artwork__stage">
         <WorkImage piece={piece} onMeasure={setMeasure} />
@@ -241,6 +270,14 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
             </a>
           )}
         </p>
+      </div>
+      <div className="artwork-systems">
+        <button type="button" className={system === 1 ? 'is-on' : undefined} onClick={() => chooseSystem(1)}>
+          sistema 1 · flechas dentro
+        </button>
+        <button type="button" className={system === 2 ? 'is-on' : undefined} onClick={() => chooseSystem(2)}>
+          sistema 2 · flechas afuera
+        </button>
       </div>
     </article>
   )
@@ -285,7 +322,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     )
   }
 
-  if (scope === 'works') return <WorksSheet piece={piece} />
+  if (scope === 'works' || scope === 'colabs') return <WorksSheet piece={piece} />
 
   const mail = mailHref(piece.title, site.contactEmail)
   const status = piece.availability === 'sold' ? 'Sold' : 'Available'

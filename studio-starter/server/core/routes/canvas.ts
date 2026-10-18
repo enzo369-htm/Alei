@@ -329,7 +329,7 @@ export const canvasRoutes = [
       return fail(400, `Máximo ${MAX_PER_KIND} bloques de este tipo`)
     }
 
-    const newestFirst = scope === 'works' && kind === 'canvas'
+    const newestFirst = (scope === 'works' || scope === 'colabs') && kind === 'canvas'
     const orderRows = newestFirst
       ? ((await db`
           select coalesce(min(sort_order), 1) - 1 as n from canvases where scope = ${scope}

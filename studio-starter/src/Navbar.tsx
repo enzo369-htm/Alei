@@ -2,13 +2,13 @@ import { Link, useMatch } from 'react-router-dom'
 
 const links = [
   { to: '/works', label: 'works' },
-  { to: '/colabs', label: 'more' },
+  { to: '/colabs', label: 'other w' },
   { to: '/about', label: 'about' },
 ] as const
 
 export function Navbar() {
-  const onWork = useMatch('/works/:pieceId')
-  const visible = onWork ? links.filter((link) => link.to === '/about') : links
+  const onHero = useMatch({ path: '/', end: true })
+  const visible = onHero ? links : links.filter((link) => link.to === '/about')
 
   return (
     <nav className="site-nav">

@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 
-/** Flores que alternan con cada click (también son el mouse). Guardá (Cmd+S) y recargá. */
+/** ✿ es la rellena y ❀ la de línea. Varias secuencias, una detrás de otra. */
 const FLOWERS = ['✿', '❀']
+const STYLE_SEQUENCES = [
+  [0, 1, 1, 1, 0, 0, 1],
+  [0, 0, 0, 1, 1, 1, 0, 1, 1],
+  [0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0],
+  [1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1],
+  [0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+  [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+] as const
 
 /**
  * Cada flor nueva gira esto respecto de la anterior.
@@ -10,7 +18,7 @@ const FLOWERS = ['✿', '❀']
 const FLOWER_TURN = 15
 
 /** Del más grande al más chico, en px. */
-const FLOWER_PX = [18, 15.5, 12, 9] as const
+const FLOWER_PX = [16.5, 14.5, 12, 10.5] as const
 
 /**
  * Ocho órdenes. Cada una repite un tamaño y no va de grande a chico.
@@ -42,6 +50,16 @@ function flowerPx(step: number) {
   const length = SIZE_SEQUENCES[0].length
   const sequence = SIZE_SEQUENCES[Math.floor(step / length) % SIZE_SEQUENCES.length]
   return FLOWER_PX[sequence[step % length] ?? 1]
+}
+
+function flowerMark(step: number) {
+  const total = STYLE_SEQUENCES.reduce((sum, sequence) => sum + sequence.length, 0)
+  let index = step % total
+  for (const sequence of STYLE_SEQUENCES) {
+    if (index < sequence.length) return FLOWERS[sequence[index] ?? 0] ?? FLOWERS[0]
+    index -= sequence.length
+  }
+  return FLOWERS[0]
 }
 
 type Point = {
@@ -111,13 +129,12 @@ export function Hero({ src }: { src: string }) {
   const paintingRef = useRef<HTMLImageElement>(null)
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [cursor, setCursor] = useState<Point | null>(null)
-  const [active, setActive] = useState(0)
   const [turn, setTurn] = useState(0)
   const [sizeStep, setSizeStep] = useState(0)
   const [frame, setFrame] = useState<Size>({ w: 0, h: 0 })
   const [natural, setNatural] = useState<Size>({ w: 0, h: 0 })
   const [pan, setPan] = useState<Point>({ x: 0.5, y: 0.5 })
-  const current = FLOWERS[active] ?? FLOWERS[0]
+  const current = flowerMark(sizeStep)
   const px = flowerPx(sizeStep)
   const size = paintedSize(frame, natural)
   const shiftX = size ? -pan.x * Math.max(0, size.w - frame.w) : 0
@@ -170,11 +187,10 @@ export function Hero({ src }: { src: string }) {
     ])
     setTurn((value) => value + FLOWER_TURN)
     setSizeStep((value) => value + 1)
-    setActive((index) => (index + 1) % FLOWERS.length)
 
     window.setTimeout(() => {
       setFlowers((items) => items.filter((item) => item.id !== id))
-    }, 10_000)
+    }, 6_000)
   }
 
   return (

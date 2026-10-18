@@ -169,7 +169,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     setError('')
     try {
       const { block } = await apiAddCanvasBlock(scope, kind)
-      setBlocks((prev) => (scope === 'works' && kind === 'canvas' ? [block, ...prev] : [...prev, block]))
+      setBlocks((prev) => ((scope === 'works' || scope === 'colabs') && kind === 'canvas' ? [block, ...prev] : [...prev, block]))
       setStatus(kind === 'text' ? 'Texto agregado — guardá cuando lo edites' : 'Lienzo agregado')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agregar')

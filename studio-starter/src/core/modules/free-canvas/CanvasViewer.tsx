@@ -75,14 +75,15 @@ function DesktopItem({
   const body = item.href ? (
     <Link to={item.href} className="studio-viewer__hit">
       {image}
-      {status ? <span className={statusClass}>{status}</span> : null}
+      {!hoverChrome && status ? <span className={statusClass}>{status}</span> : null}
     </Link>
   ) : (
     <>
       {image}
-      {status ? <span className={statusClass}>{status}</span> : null}
+      {!hoverChrome && status ? <span className={statusClass}>{status}</span> : null}
     </>
   )
+  const soldDot = hoverChrome && status === 'sold'
 
   return (
     <div
@@ -96,7 +97,12 @@ function DesktopItem({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {title ? <span className="studio-viewer__title">{title}</span> : null}
+      {hoverChrome && (title || soldDot) ? (
+        <span className="studio-viewer__meta">
+          {title ? <span className="studio-viewer__title">{title}</span> : null}
+          {soldDot ? <span className="studio-viewer__sold" aria-label="sold" /> : null}
+        </span>
+      ) : null}
       {body}
       {caption && hovered && <div className="studio-viewer__caption">{caption}</div>}
     </div>
