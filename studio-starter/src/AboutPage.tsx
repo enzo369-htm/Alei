@@ -35,7 +35,7 @@ function AboutSheet({ page }: { page: PageRecord }) {
 
   useEffect(() => {
     const align = () => {
-      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent.trim() === 'about')
+      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent?.trim() === 'about')
       const pageRight = sheetRef.current?.getBoundingClientRect().right
       if (!about || pageRight == null) return
       const right = letterRight(about)

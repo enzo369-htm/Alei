@@ -216,7 +216,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
   useEffect(() => {
     const align = () => {
       const alei = document.querySelector<HTMLElement>('.site-nav__brand')
-      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent.trim() === 'about')
+      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent?.trim() === 'about')
       if (!alei || !about) return
       const a = letterInk(alei)
       const t = letterInk(about)
