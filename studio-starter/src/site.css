@@ -53,7 +53,7 @@ body,
 }
 
 .site-nav__brand {
-  font-size: calc(1.08em * 1.2 * 0.9);
+  font-size: calc(1.08em * 1.2 * 0.9 * 0.9);
   letter-spacing: 0.5px;
 }
 
@@ -603,6 +603,7 @@ body,
   --about-photo-width: calc(45vw * 0.35 * 1.05 * 0.75);
   --about-side-gap: 38px;
   --about-block-top: calc(50dvh - var(--site-nav-height) - var(--about-photo-width) / 2);
+  --about-note-size: 13px;
   position: relative;
   display: flow-root;
   min-height: calc(100dvh - var(--site-nav-height));
@@ -645,7 +646,7 @@ body,
 .about-page__mail,
 .about-page__social {
   color: #000000;
-  font-size: 13px;
+  font-size: var(--about-note-size);
   font-style: normal;
   font-weight: 400;
   letter-spacing: 0;
@@ -656,7 +657,7 @@ body,
 }
 
 .about-page__copy {
-  margin: calc(var(--about-block-top) + 8px) var(--text-edge, var(--site-gutter)) 0
+  margin: var(--about-block-top) var(--text-edge, var(--site-gutter)) 0
     calc(50% + var(--about-side-gap));
 }
 
@@ -664,11 +665,10 @@ body,
   margin: 0;
   color: #000000;
   font-size: 20.7px;
-  text-transform: lowercase;
   font-weight: 400;
   font-style: normal;
   letter-spacing: 0;
-  line-height: 1.2;
+  line-height: 1;
   text-align: left;
 }
 
@@ -676,24 +676,38 @@ body,
   font-weight: 700;
 }
 
-.about-page__bio {
-  margin-top: 8px;
+.about-page__bio,
+.about-page__text {
+  white-space: pre-wrap;
 }
 
-.about-page__bio p {
-  margin: 0 0 12px;
-  font-size: 16px;
+.about-page__bio {
+  margin-top: 8px;
+  font-size: var(--about-note-size);
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.45;
 }
 
-.about-page__bio p:last-child {
-  margin-bottom: 0;
+.about-page__text {
+  margin: 0;
+  font-size: var(--about-note-size);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.4;
 }
 
 .about-page__block {
   margin-top: 64px;
+}
+
+.about-page__block:first-child {
+  margin-top: 0;
+}
+
+.about-page__ink {
+  display: block;
+  white-space: pre-wrap;
 }
 
 .about-page__label {
@@ -701,24 +715,7 @@ body,
   font-size: 20px;
   font-weight: 400;
   letter-spacing: 0;
-  line-height: 1.2;
-}
-
-.about-page__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.about-page__list li {
-  font-size: 16px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.4;
-}
-
-.about-page__list li::before {
-  content: '- ';
+  line-height: 1;
 }
 
 .about-page__note {

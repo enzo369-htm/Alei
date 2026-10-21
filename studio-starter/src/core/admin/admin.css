@@ -222,6 +222,14 @@ body {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  color: #000000;
+  background: #ffffff;
+  border: 0;
+}
+
+.admin-nav__link.admin-nav__button:hover {
+  color: #000000;
+  background: #ffffff;
 }
 
 .admin-canvas-head {
@@ -415,6 +423,70 @@ body {
   gap: 16px;
   align-items: center;
   margin-top: 18px;
+}
+
+.admin-about-add,
+.admin-about-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-about-add {
+  margin-top: 18px;
+}
+
+.admin-about-add button,
+.admin-about-block__head button {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-about-add button:disabled,
+.admin-about-block__head button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.admin-about-blocks {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-about-block {
+  margin: 0 0 16px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--admin-line);
+  border-radius: 8px;
+}
+
+.admin-about-image {
+  margin-top: 16px;
+}
+
+.admin-about-block .admin-actions,
+.admin-page > .admin-actions {
+  margin-top: 14px;
+}
+
+.admin-actions .admin-page__copy {
+  margin: 0;
+}
+
+.admin-about-block__head {
+  justify-content: space-between;
+}
+
+.admin-about-block__head p {
+  margin: 0;
+  font-size: 14px;
 }
 
 .admin-cover-preview {

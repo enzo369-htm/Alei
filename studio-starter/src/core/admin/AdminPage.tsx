@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { AdminCanvas } from '../modules/free-canvas/AdminCanvas'
-import { AdminPageEditor } from '../recipes/base-page/AdminPageEditor'
+import { AdminAboutEditor } from './AdminAboutEditor'
 import { AdminGate } from './AdminGate'
 import { AdminHero } from './AdminHero'
 import { AdminShell } from './AdminShell'
@@ -30,7 +30,7 @@ export function AdminPage() {
           <Route path="hero" element={<AdminHero />} />
           <Route path="works" element={<AdminCanvas scope="works" heading="Works" />} />
           <Route path="colabs" element={<AdminCanvas scope="colabs" heading="Other.W" />} />
-          <Route path="about" element={<AdminPageEditor slug="about" heading="About" />} />
+          <Route path="about" element={<AdminAboutEditor />} />
         </Route>
       </Route>
     </Routes>

@@ -1,21 +1,83 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { apiGetPage, type PageRecord } from './core/api/pages'
 import { Picture } from './core/images/Picture'
 import { site } from './site.config'
+import { ABOUT_UPDATED, parseAboutBlocks, type AboutBlock } from './about-blocks'
 
 const ABOUT_EMAIL = 'aleidraws@gmail.com'
 const ABOUT_INSTAGRAM = '@aleidraws'
 const ABOUT_INSTAGRAM_URL = 'https://www.instagram.com/aleidraws/'
 
-const ABOUT_BIO = [
-  'His work is based on a layering strategy of superimposed stratums and mixed paint compositions coming from organic abstracted shapes.',
-  'Through the use of modulation and materiality, he aims to reach a poetic and naked essence. Meanwhile, these compositions follow a path of silence in between the heights of paint reaching out to the essential.',
-  'Space and time or physics and memory are concepts that hide along the subtle cracks on the canvas surface. Subdued tones fight against proportion to achieve harmony.',
-]
+function TitleText({ bold, plain }: { bold: string; plain: string }) {
+  return (
+    <>
+      {bold ? <strong>{bold}</strong> : null}
+      {bold && plain ? ' ' : null}
+      {plain}
+    </>
+  )
+}
 
-const ABOUT_SHOWS = ['expo conjunta ACID FAIR (Tenerife, 2025)', 'expo irfof woefn (Madrid, 2026)']
+function AboutBlockView({ block }: { block: AboutBlock }) {
+  if (block.kind === 'preserved') return null
+  const description = block.body.length > 0
+  const bold = block.title.trim()
+  const plain = block.plain.trim()
+  if (!bold && !plain && !description) return null
+  return (
+    <section className="about-page__block">
+      {block.kind === 'title' && (bold || plain) ? (
+        <h1 className="about-page__title">
+          <span className="about-page__ink">
+            <TitleText bold={bold} plain={plain} />
+          </span>
+        </h1>
+      ) : null}
+      {block.kind === 'secondary' && bold ? (
+        <h2 className="about-page__label">
+          <span className="about-page__ink">{block.title}</span>
+        </h2>
+      ) : null}
+      {description ? (
+        <div className={block.kind === 'title' ? 'about-page__bio' : 'about-page__text'}>
+          <span className="about-page__ink">{block.body}</span>
+        </div>
+      ) : null}
+    </section>
+  )
+}
 
-const ABOUT_PRESS = ['ACERO MAGAZINE.', 'Faro de Vigo']
+function fitBlockInk(root: HTMLElement) {
+  const probeCss = 'display:inline-block;width:0;height:0;overflow:hidden;vertical-align:baseline;padding:0;margin:0;border:0;'
+  for (const outer of root.querySelectorAll<HTMLElement>('.about-page__title, .about-page__label, .about-page__bio, .about-page__text')) {
+    const ink = outer.querySelector<HTMLElement>(':scope > .about-page__ink')
+    if (!ink) continue
+    ink.style.transform = ''
+    outer.style.height = ''
+    const start = document.createElement('span')
+    const end = document.createElement('span')
+    start.style.cssText = probeCss
+    end.style.cssText = probeCss
+    ink.insertBefore(start, ink.firstChild)
+    ink.appendChild(end)
+    const firstBase = start.getBoundingClientRect().bottom
+    const lastBase = end.getBoundingClientRect().bottom
+    start.remove()
+    end.remove()
+    const ctx = document.createElement('canvas').getContext('2d')
+    if (!ctx) continue
+    const style = getComputedStyle(ink)
+    ctx.font = style.font
+    ;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = style.letterSpacing
+    const metrics = ctx.measureText(ink.innerText.replace(/\s+/g, ' ').trim())
+    if (!metrics.actualBoundingBoxAscent && !metrics.actualBoundingBoxDescent) continue
+    const rect = outer.getBoundingClientRect()
+    const top = firstBase - metrics.actualBoundingBoxAscent - rect.top
+    const bottom = rect.bottom - (lastBase + metrics.actualBoundingBoxDescent)
+    ink.style.transform = `translateY(${-top}px)`
+    outer.style.height = `${rect.height - top - bottom}px`
+  }
+}
 
 function letterRight(el: HTMLElement) {
   const style = getComputedStyle(el)
@@ -30,11 +92,17 @@ function letterRight(el: HTMLElement) {
 
 function AboutSheet({ page }: { page: PageRecord }) {
   const email = site.contactEmail.trim() || ABOUT_EMAIL
+  const blocks = useMemo(() => parseAboutBlocks(page.body), [page.body])
   const [textEdge, setTextEdge] = useState<number | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
 
+  useLayoutEffect(() => {
+    if (sheetRef.current) fitBlockInk(sheetRef.current)
+  })
+
   useEffect(() => {
     const align = () => {
+      if (sheetRef.current) fitBlockInk(sheetRef.current)
       const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent?.trim() === 'about')
       const pageRight = sheetRef.current?.getBoundingClientRect().right
       if (!about || pageRight == null) return
@@ -62,30 +130,9 @@ function AboutSheet({ page }: { page: PageRecord }) {
         ) : null}
       </div>
       <div className="about-page__copy">
-        <h1 className="about-page__title">
-          <strong>alei</strong> (alejandro rodríguez lópez)
-        </h1>
-        <div className="about-page__bio">
-          {ABOUT_BIO.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-        <section className="about-page__block">
-          <h2 className="about-page__label">exposiciones</h2>
-          <ul className="about-page__list">
-            {ABOUT_SHOWS.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-        <section className="about-page__block">
-          <h2 className="about-page__label">prensa</h2>
-          <ul className="about-page__list">
-            {ABOUT_PRESS.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
+        {blocks?.map((block) => (
+          <AboutBlockView key={block.id} block={block} />
+        ))}
       </div>
       <div className="about-page__contact">
         <a className="about-page__mail" href={`mailto:${email}`}>
@@ -104,18 +151,51 @@ export function AboutPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setPage(undefined)
-    setError('')
-    void apiGetPage('about')
-      .then(setPage)
-      .catch((err) => {
-        const message = err instanceof Error ? err.message : 'About is not available.'
-        if (message === 'No encontrado') {
-          setPage(null)
-          return
-        }
-        setError(message)
-      })
+    let active = true
+    let shown = false
+    let request = 0
+    const load = () => {
+      const current = ++request
+      void apiGetPage('about')
+        .then((next) => {
+          if (!active || current !== request) return
+          shown = true
+          setPage(next)
+          setError('')
+        })
+        .catch((err) => {
+          if (!active || current !== request || shown) return
+          const message = err instanceof Error ? err.message : 'About is not available.'
+          if (message === 'No encontrado') {
+            shown = true
+            setPage(null)
+            return
+          }
+          setError(message)
+        })
+    }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === ABOUT_UPDATED) load()
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load()
+    }
+    let channel: BroadcastChannel | null = null
+    try {
+      channel = new BroadcastChannel(ABOUT_UPDATED)
+      channel.onmessage = () => load()
+    } catch {
+      channel = null
+    }
+    load()
+    window.addEventListener('storage', onStorage)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      active = false
+      channel?.close()
+      window.removeEventListener('storage', onStorage)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [])
 
   if (error) {

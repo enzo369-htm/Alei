@@ -190,7 +190,7 @@ export function Hero({ src }: { src: string }) {
 
     window.setTimeout(() => {
       setFlowers((items) => items.filter((item) => item.id !== id))
-    }, 6_000)
+    }, 4_000)
   }
 
   return (
