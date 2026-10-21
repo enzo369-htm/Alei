@@ -15,7 +15,7 @@ import {
 const SLUG = 'about'
 
 function blankBlock(kind: AboutBlockKind): AboutBlock {
-  return { id: crypto.randomUUID(), kind, title: '', plain: '', body: '' }
+  return { id: crypto.randomUUID(), kind, title: '', titleEn: '', plain: '', plainEn: '', body: '', bodyEn: '' }
 }
 
 function headingFrom(list: AboutBlock[], fallback: string) {
@@ -34,6 +34,7 @@ export function AdminAboutEditor() {
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [imageNote, setImageNote] = useState('')
+  const [english, setEnglish] = useState(false)
   const imageTouched = useRef(false)
 
   useEffect(() => {
@@ -130,6 +131,9 @@ export function AdminAboutEditor() {
         <button type="button" disabled={!ready || locked} onClick={() => setBlocks((current) => [...current, blankBlock('secondary')])}>
           Agregar bloque secundario
         </button>
+        <button type="button" aria-pressed={english} onClick={() => setEnglish((open) => !open)}>
+          {english ? 'Ocultar inglés' : 'Inglés'}
+        </button>
       </div>
 
       <ol className="admin-about-blocks">
@@ -159,6 +163,18 @@ export function AdminAboutEditor() {
                         onChange={(event) => updateBlock(block.id, { title: event.target.value })}
                       />
                     </label>
+                    {english ? (
+                      <label className="admin-login__label" htmlFor={`about-title-en-${block.id}`}>
+                        negrita · inglés
+                        <input
+                          id={`about-title-en-${block.id}`}
+                          className="admin-login__input"
+                          value={block.titleEn}
+                          disabled={locked}
+                          onChange={(event) => updateBlock(block.id, { titleEn: event.target.value })}
+                        />
+                      </label>
+                    ) : null}
                     <label className="admin-login__label" htmlFor={`about-plain-${block.id}`}>
                       texto normal
                       <input
@@ -169,6 +185,18 @@ export function AdminAboutEditor() {
                         onChange={(event) => updateBlock(block.id, { plain: event.target.value })}
                       />
                     </label>
+                    {english ? (
+                      <label className="admin-login__label" htmlFor={`about-plain-en-${block.id}`}>
+                        texto normal · inglés
+                        <input
+                          id={`about-plain-en-${block.id}`}
+                          className="admin-login__input"
+                          value={block.plainEn}
+                          disabled={locked}
+                          onChange={(event) => updateBlock(block.id, { plainEn: event.target.value })}
+                        />
+                      </label>
+                    ) : null}
                   </>
                 ) : (
                   <label className="admin-login__label" htmlFor={`about-title-${block.id}`}>
@@ -182,6 +210,18 @@ export function AdminAboutEditor() {
                     />
                   </label>
                 )}
+                {english && block.kind === 'secondary' ? (
+                  <label className="admin-login__label" htmlFor={`about-title-en-${block.id}`}>
+                    Título · inglés
+                    <input
+                      id={`about-title-en-${block.id}`}
+                      className="admin-login__input"
+                      value={block.titleEn}
+                      disabled={locked}
+                      onChange={(event) => updateBlock(block.id, { titleEn: event.target.value })}
+                    />
+                  </label>
+                ) : null}
                 <label className="admin-login__label" htmlFor={`about-body-${block.id}`}>
                   Descripción
                   <textarea
@@ -193,6 +233,19 @@ export function AdminAboutEditor() {
                     onChange={(event) => updateBlock(block.id, { body: event.target.value })}
                   />
                 </label>
+                {english ? (
+                  <label className="admin-login__label" htmlFor={`about-body-en-${block.id}`}>
+                    Descripción · inglés
+                    <textarea
+                      id={`about-body-en-${block.id}`}
+                      className="admin-login__input admin-textarea"
+                      rows={block.kind === 'title' ? 8 : 4}
+                      value={block.bodyEn}
+                      disabled={locked}
+                      onChange={(event) => updateBlock(block.id, { bodyEn: event.target.value })}
+                    />
+                  </label>
+                ) : null}
               </>
             )}
           </li>

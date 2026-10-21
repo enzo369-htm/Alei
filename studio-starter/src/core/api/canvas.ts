@@ -19,8 +19,11 @@ export type CanvasPiece = {
   width: number
   z: number
   title: string
+  titleEn: string
   ficha: string
+  fichaEn: string
   text: string
+  textEn: string
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]
@@ -30,7 +33,9 @@ export type CanvasBlock = {
   id: string
   kind: 'canvas' | 'text'
   title: string
+  titleEn: string
   body: string
+  bodyEn: string
   sortOrder: number
   heightRatio: number
   visible: boolean

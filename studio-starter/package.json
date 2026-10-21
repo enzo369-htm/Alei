@@ -9,7 +9,7 @@
     "bundle:api": "node scripts/bundle-api.mjs",
     "preview": "vite preview",
     "db:migrate": "node scripts/migrate.mjs",
-    "test": "node --test --experimental-strip-types scripts/*.test.mjs src/core/images/*.test.ts src/core/modules/free-canvas/*.test.ts server/core/*.test.ts",
+    "test": "node --test --experimental-strip-types scripts/*.test.mjs src/text-of.test.ts src/core/images/*.test.ts src/core/modules/free-canvas/*.test.ts server/core/*.test.ts",
     "smoke:api": "node scripts/smoke-api.mjs"
   },
   "dependencies": {

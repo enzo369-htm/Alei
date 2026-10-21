@@ -4,8 +4,11 @@ export type AboutBlock = {
   id: string
   kind: AboutBlockKind | 'preserved'
   title: string
+  titleEn: string
   plain: string
+  plainEn: string
   body: string
+  bodyEn: string
   raw?: Record<string, unknown>
 }
 
@@ -21,24 +24,37 @@ export function defaultAboutBlocks(): AboutBlock[] {
       id: 'title',
       kind: 'title',
       title: 'alei',
+      titleEn: '',
       plain: '(alejandro rodríguez lópez)',
+      plainEn: '',
       body: DEFAULT_BIO.join('\n\n'),
+      bodyEn: '',
     },
     {
       id: 'shows',
       kind: 'secondary',
       title: 'exposiciones',
+      titleEn: '',
       plain: '',
+      plainEn: '',
       body: '- expo conjunta ACID FAIR (Tenerife, 2025)\n- expo irfof woefn (Madrid, 2026)',
+      bodyEn: '',
     },
     {
       id: 'press',
       kind: 'secondary',
       title: 'prensa',
+      titleEn: '',
       plain: '',
+      plainEn: '',
       body: '- ACERO MAGAZINE.\n- Faro de Vigo',
+      bodyEn: '',
     },
   ]
+}
+
+function textField(value: unknown) {
+  return typeof value === 'string' ? value : ''
 }
 
 function titleParts(title: string, plain: unknown) {
@@ -67,17 +83,30 @@ export function parseAboutBlocks(body: string): AboutBlock[] | null {
       const id = typeof record.id === 'string' && record.id ? record.id : `about-block-${index}`
       const kind = blockKind(record.kind)
       if (!kind) {
-        blocks.push({ id, kind: 'preserved', title: '', plain: '', body: '', raw: record })
+        blocks.push({
+          id,
+          kind: 'preserved',
+          title: '',
+          titleEn: '',
+          plain: '',
+          plainEn: '',
+          body: '',
+          bodyEn: '',
+          raw: record,
+        })
         continue
       }
-      const title = typeof record.title === 'string' ? record.title : ''
+      const title = textField(record.title)
       const parts = kind === 'title' ? titleParts(title, record.plain) : { title, plain: '' }
       blocks.push({
         id,
         kind,
         title: parts.title,
+        titleEn: textField(record.titleEn),
         plain: parts.plain,
-        body: typeof record.body === 'string' ? record.body : '',
+        plainEn: textField(record.plainEn),
+        body: textField(record.body),
+        bodyEn: textField(record.bodyEn),
       })
     }
     return blocks
@@ -92,8 +121,11 @@ export function serializeAboutBlocks(blocks: AboutBlock[]) {
       id: block.id,
       kind: block.kind,
       title: block.title,
+      titleEn: block.titleEn,
       plain: block.plain,
+      plainEn: block.plainEn,
       body: block.body,
+      bodyEn: block.bodyEn,
     })),
   })
 }

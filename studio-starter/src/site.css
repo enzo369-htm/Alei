@@ -675,3 +675,32 @@ body,
     text-align: left;
   }
 }
+
+.lang-switch {
+  position: fixed;
+  z-index: 30;
+  left: 20px;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.lang-switch button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.lang-switch button.is-active {
+  color: #000000;
+}
+
+.lang-switch button:focus-visible {
+  outline: 1px solid #000000;
+  outline-offset: 3px;
+}

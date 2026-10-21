@@ -19,8 +19,11 @@ export type ParsedPiece = {
   y: number
   width: number
   title: string
+  titleEn: string
   ficha: string
+  fichaEn: string
   text: string
+  textEn: string
   availability: PieceAvailability
   /** Undefined means the client did not send slides, so the stored ones stay. */
   slides?: ParsedSlide[]
@@ -33,7 +36,9 @@ function availabilityOf(value: unknown): PieceAvailability {
 export type ParsedBlock = {
   id: string
   title: string
+  titleEn: string
   body: string
+  bodyEn: string
   heightRatio: number
   visible: boolean
   pieces: ParsedPiece[]
@@ -93,8 +98,11 @@ export function parseCanvasPut(
         y: clampNum(piece.y, 0, 98, 8),
         width: clampNum(piece.width, 5, 90, 24),
         title: clip(asText(piece.title), TITLE_MAX),
+        titleEn: clip(asText(piece.titleEn), TITLE_MAX),
         ficha: clip(asText(piece.ficha), FICHA_MAX),
+        fichaEn: clip(asText(piece.fichaEn), FICHA_MAX),
         text: clip(asText(piece.text), FICHA_MAX),
+        textEn: clip(asText(piece.textEn), FICHA_MAX),
         availability: availabilityOf(piece.availability),
         ...(slides.slides ? { slides: slides.slides } : {}),
       })
@@ -103,7 +111,9 @@ export function parseCanvasPut(
     parsed.push({
       id,
       title: clip(asText(block.title), TITLE_MAX),
+      titleEn: clip(asText(block.titleEn), TITLE_MAX),
       body: clip(asText(block.body), BODY_MAX),
+      bodyEn: clip(asText(block.bodyEn), BODY_MAX),
       heightRatio: clampNum(block.heightRatio, 0.6, 2.5, 1.2),
       visible: visibleOf(block.visible),
       pieces,

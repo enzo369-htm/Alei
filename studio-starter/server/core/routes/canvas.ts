@@ -14,7 +14,9 @@ type CanvasRow = {
   scope: string
   kind: 'canvas' | 'text'
   title: string
+  title_en: string
   body: string
+  body_en: string
   sort_order: number
   height_ratio: number
   visible: boolean
@@ -40,8 +42,11 @@ type PlacementRow = {
   width: number
   z_index: number
   title: string
+  title_en: string
   ficha: string
+  ficha_en: string
   piece_text: string
+  piece_text_en: string
   availability: PieceAvailability
   url: string | null
   media_width: number | null
@@ -67,8 +72,11 @@ export type CanvasPiece = {
   width: number
   z: number
   title: string
+  titleEn: string
   ficha: string
+  fichaEn: string
   text: string
+  textEn: string
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]
@@ -78,7 +86,9 @@ export type CanvasBlock = {
   id: string
   kind: 'canvas' | 'text'
   title: string
+  titleEn: string
   body: string
+  bodyEn: string
   sortOrder: number
   heightRatio: number
   visible: boolean
@@ -132,8 +142,11 @@ function pieceOf(row: PlacementRow): CanvasPiece {
     width: row.width,
     z: row.z_index,
     title: row.title ?? '',
+    titleEn: row.title_en ?? '',
     ficha: row.ficha ?? '',
+    fichaEn: row.ficha_en ?? '',
     text: row.piece_text ?? '',
+    textEn: row.piece_text_en ?? '',
     availability: row.availability === 'sold' ? 'sold' : 'available',
     media,
     slides: slidesFrom(row.slides),
@@ -156,7 +169,9 @@ function blockOf(row: CanvasRow, pieces: CanvasPiece[]): CanvasBlock {
     id: row.id,
     kind: row.kind === 'text' ? 'text' : 'canvas',
     title: row.title,
+    titleEn: row.title_en ?? '',
     body: row.body,
+    bodyEn: row.body_en ?? '',
     sortOrder: row.sort_order,
     heightRatio: row.height_ratio,
     visible: row.visible !== false,
@@ -173,7 +188,7 @@ function scopeOr400(raw: string | undefined) {
 async function loadScope(scope: string, withSlides: boolean) {
   const db = sql()
   const canvases = (await db`
-    select id, scope, kind, title, body, sort_order, height_ratio, visible
+    select id, scope, kind, title, title_en, body, body_en, sort_order, height_ratio, visible
     from canvases
     where scope = ${scope}
     order by sort_order, created_at
@@ -183,7 +198,7 @@ async function loadScope(scope: string, withSlides: boolean) {
     ? ((await db`
         select
           p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
-          p.title, p.ficha, p.piece_text, p.availability,
+          p.title, p.title_en, p.ficha, p.ficha_en, p.piece_text, p.piece_text_en, p.availability,
           m.url, m.width as media_width, m.height as media_height,
           m.mime, m.variants,
           (
@@ -215,7 +230,7 @@ async function loadScope(scope: string, withSlides: boolean) {
     : ((await db`
         select
           p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
-          p.title, p.ficha, p.piece_text, p.availability,
+          p.title, p.title_en, p.ficha, p.ficha_en, p.piece_text, p.piece_text_en, p.availability,
           m.url, m.width as media_width, m.height as media_height,
           m.mime, m.variants
         from canvas_placements p
@@ -273,8 +288,11 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
           width = ${piece.width},
           z_index = ${z},
           title = ${piece.title},
+          title_en = ${piece.titleEn},
           ficha = ${piece.ficha},
+          ficha_en = ${piece.fichaEn},
           piece_text = ${piece.text},
+          piece_text_en = ${piece.textEn},
           availability = ${piece.availability}
         where id = ${piece.id} and canvas_id = ${block.id}
       `
@@ -283,11 +301,11 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
     } else {
       const inserted = (await db`
         insert into canvas_placements (
-          canvas_id, media_id, x, y, width, z_index, title, ficha, piece_text, availability
+          canvas_id, media_id, x, y, width, z_index, title, title_en, ficha, ficha_en, piece_text, piece_text_en, availability
         )
         values (
           ${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z},
-          ${piece.title}, ${piece.ficha}, ${piece.text}, ${piece.availability}
+          ${piece.title}, ${piece.titleEn}, ${piece.ficha}, ${piece.fichaEn}, ${piece.text}, ${piece.textEn}, ${piece.availability}
         )
         returning id
       `) as { id: string }[]
@@ -340,7 +358,7 @@ export const canvasRoutes = [
     const inserted = (await db`
       insert into canvases (scope, kind, sort_order)
       values (${scope}, ${kind}, ${orderRows[0]?.n ?? 0})
-      returning id, scope, kind, title, body, sort_order, height_ratio, visible
+      returning id, scope, kind, title, title_en, body, body_en, sort_order, height_ratio, visible
     `) as CanvasRow[]
     if (!inserted[0]) return fail(500, 'No se pudo crear el bloque')
     return json({ block: blockOf(inserted[0], []) })
@@ -372,7 +390,9 @@ export const canvasRoutes = [
         update canvases
         set
           title = ${block.title},
+          title_en = ${block.titleEn},
           body = ${block.body},
+          body_en = ${block.bodyEn},
           height_ratio = ${block.heightRatio},
           visible = ${block.visible},
           sort_order = ${sortOrder}

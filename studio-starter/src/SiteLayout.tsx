@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import '@fontsource-variable/inter'
+import { LanguageSwitch } from './locale'
 import { Navbar } from './Navbar'
 import './site.css'
 
@@ -12,6 +13,7 @@ export function SiteLayout() {
       <main className="site-main">
         <Outlet />
       </main>
+      <LanguageSwitch />
     </div>
   )
 }

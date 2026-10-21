@@ -67,6 +67,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const [slideUploading, setSlideUploading] = useState(false)
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
+  const [english, setEnglish] = useState(false)
   const fileForCanvas = useRef<string | null>(null)
   const editGen = useRef(0)
 
@@ -75,7 +76,9 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const selectedPiece = pieceOf(blocks, selected)
 
   function patchSelected(
-    patch: Partial<Pick<CanvasPiece, 'title' | 'ficha' | 'text' | 'availability' | 'slides'>>,
+    patch: Partial<
+      Pick<CanvasPiece, 'title' | 'titleEn' | 'ficha' | 'fichaEn' | 'text' | 'textEn' | 'availability' | 'slides'>
+    >,
   ) {
     if (!selected) return
     markDirty(
@@ -319,8 +322,11 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           width: pos.width,
           z: host?.pieces.length ?? 0,
           title: '',
+          titleEn: '',
           ficha: '',
+          fichaEn: '',
           text: '',
+          textEn: '',
           availability: 'available',
           slides: [],
         }
@@ -370,6 +376,14 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           </button>
           <button
             type="button"
+            className={`admin-btn${english ? ' admin-btn--primary' : ''}`}
+            aria-pressed={english}
+            onClick={() => setEnglish((open) => !open)}
+          >
+            {english ? 'Ocultar inglés' : 'Inglés'}
+          </button>
+          <button
+            type="button"
             className="admin-btn admin-btn--primary"
             disabled={saving || slideUploading || !loaded || !dirty}
             onClick={() => void onSave()}
@@ -380,8 +394,8 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
       </div>
 
       {selectedPiece && (
-        <div className="admin-piece-sheet">
-          <label className="admin-login__label" htmlFor="piece-title">
+        <div className={english ? 'admin-piece-sheet admin-piece-sheet--english' : 'admin-piece-sheet'}>
+          <label className="admin-login__label admin-piece-sheet__title" htmlFor="piece-title">
             Título
             <span className="admin-piece-sheet__note">Negrita, 30px</span>
             <input
@@ -391,7 +405,18 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               onChange={(event) => patchSelected({ title: event.target.value })}
             />
           </label>
-          <label className="admin-login__label" htmlFor="piece-ficha">
+          {english ? (
+            <label className="admin-login__label admin-piece-sheet__title-en" htmlFor="piece-title-en">
+              Título · inglés
+              <input
+                id="piece-title-en"
+                className="admin-login__input"
+                value={selectedPiece.titleEn}
+                onChange={(event) => patchSelected({ titleEn: event.target.value })}
+              />
+            </label>
+          ) : null}
+          <label className="admin-login__label admin-piece-sheet__ficha" htmlFor="piece-ficha">
             Medidas y técnica
             <span className="admin-piece-sheet__note">Cursiva, 20px</span>
             <textarea
@@ -402,17 +427,41 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               onChange={(event) => patchSelected({ ficha: event.target.value })}
             />
           </label>
-          <label className="admin-login__label" htmlFor="piece-text">
+          {english ? (
+            <label className="admin-login__label admin-piece-sheet__ficha-en" htmlFor="piece-ficha-en">
+              Medidas y técnica · inglés
+              <textarea
+                id="piece-ficha-en"
+                className="admin-login__input admin-textarea"
+                rows={3}
+                value={selectedPiece.fichaEn}
+                onChange={(event) => patchSelected({ fichaEn: event.target.value })}
+              />
+            </label>
+          ) : null}
+          <label className="admin-login__label admin-piece-sheet__text" htmlFor="piece-text">
             Texto
             <span className="admin-piece-sheet__note">Normal, 20px</span>
             <textarea
               id="piece-text"
               className="admin-login__input admin-textarea"
-              rows={4}
+              rows={3}
               value={selectedPiece.text}
               onChange={(event) => patchSelected({ text: event.target.value })}
             />
           </label>
+          {english ? (
+            <label className="admin-login__label admin-piece-sheet__text-en" htmlFor="piece-text-en">
+              Texto · inglés
+              <textarea
+                id="piece-text-en"
+                className="admin-login__input admin-textarea"
+                rows={3}
+                value={selectedPiece.textEn}
+                onChange={(event) => patchSelected({ textEn: event.target.value })}
+              />
+            </label>
+          ) : null}
           <div className="admin-piece-sheet__avail">
             <p className="admin-login__label">Estado</p>
             <div className="admin-actions">
@@ -534,6 +583,23 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
                 }
               />
             </label>
+            {english ? (
+              <label className="admin-login__label" htmlFor={`canvas-title-en-${block.id}`}>
+                Título · inglés
+                <input
+                  id={`canvas-title-en-${block.id}`}
+                  className="admin-login__input"
+                  value={block.titleEn}
+                  onChange={(event) =>
+                    markDirty(
+                      blocks.map((item) =>
+                        item.id === block.id ? { ...item, titleEn: event.target.value } : item,
+                      ),
+                    )
+                  }
+                />
+              </label>
+            ) : null}
             <label className="admin-login__label" htmlFor={`canvas-body-${block.id}`}>
               Texto
               <textarea
@@ -550,6 +616,24 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
                 }
               />
             </label>
+            {english ? (
+              <label className="admin-login__label" htmlFor={`canvas-body-en-${block.id}`}>
+                Texto · inglés
+                <textarea
+                  id={`canvas-body-en-${block.id}`}
+                  className="admin-login__input admin-textarea"
+                  rows={8}
+                  value={block.bodyEn}
+                  onChange={(event) =>
+                    markDirty(
+                      blocks.map((item) =>
+                        item.id === block.id ? { ...item, bodyEn: event.target.value } : item,
+                      ),
+                    )
+                  }
+                />
+              </label>
+            ) : null}
           </article>
         ) : (
           <article

@@ -3,6 +3,7 @@ import { apiGetPage, type PageRecord } from './core/api/pages'
 import { Picture } from './core/images/Picture'
 import { site } from './site.config'
 import { ABOUT_UPDATED, parseAboutBlocks, type AboutBlock } from './about-blocks'
+import { textOf, useLocale } from './locale'
 
 const ABOUT_EMAIL = 'aleidraws@gmail.com'
 const ABOUT_INSTAGRAM = '@aleidraws'
@@ -19,28 +20,29 @@ function TitleText({ bold, plain }: { bold: string; plain: string }) {
 }
 
 function AboutBlockView({ block }: { block: AboutBlock }) {
+  const { lang } = useLocale()
   if (block.kind === 'preserved') return null
-  const description = block.body.length > 0
-  const bold = block.title.trim()
-  const plain = block.plain.trim()
-  if (!bold && !plain && !description) return null
+  const bold = textOf(block.title, block.titleEn, lang)
+  const plain = textOf(block.plain, block.plainEn, lang)
+  const body = textOf(block.body, block.bodyEn, lang)
+  if (!bold.trim() && !plain.trim() && !body.trim()) return null
   return (
     <section className="about-page__block">
-      {block.kind === 'title' && (bold || plain) ? (
+      {block.kind === 'title' && (bold.trim() || plain.trim()) ? (
         <h1 className="about-page__title">
           <span className="about-page__ink">
-            <TitleText bold={bold} plain={plain} />
+            <TitleText bold={bold.trim() ? bold : ''} plain={plain.trim() ? plain : ''} />
           </span>
         </h1>
       ) : null}
-      {block.kind === 'secondary' && bold ? (
+      {block.kind === 'secondary' && bold.trim() ? (
         <h2 className="about-page__label">
-          <span className="about-page__ink">{block.title}</span>
+          <span className="about-page__ink">{bold}</span>
         </h2>
       ) : null}
-      {description ? (
+      {body.trim() ? (
         <div className={block.kind === 'title' ? 'about-page__bio' : 'about-page__text'}>
-          <span className="about-page__ink">{block.body}</span>
+          <span className="about-page__ink">{body}</span>
         </div>
       ) : null}
     </section>
@@ -103,7 +105,7 @@ function AboutSheet({ page }: { page: PageRecord }) {
   useEffect(() => {
     const align = () => {
       if (sheetRef.current) fitBlockInk(sheetRef.current)
-      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent?.trim() === 'about')
+      const about = document.querySelector<HTMLElement>('.site-nav a[href="/about"]')
       const pageRight = sheetRef.current?.getBoundingClientRect().right
       if (!about || pageRight == null) return
       const right = letterRight(about)
@@ -147,8 +149,9 @@ function AboutSheet({ page }: { page: PageRecord }) {
 }
 
 export function AboutPage() {
+  const { t } = useLocale()
   const [page, setPage] = useState<PageRecord | null | undefined>(undefined)
-  const [error, setError] = useState('')
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -161,17 +164,18 @@ export function AboutPage() {
           if (!active || current !== request) return
           shown = true
           setPage(next)
-          setError('')
+          setFailed(false)
         })
         .catch((err) => {
           if (!active || current !== request || shown) return
-          const message = err instanceof Error ? err.message : 'About is not available.'
+          const message = err instanceof Error ? err.message : ''
           if (message === 'No encontrado') {
             shown = true
             setPage(null)
+            setFailed(false)
             return
           }
-          setError(message)
+          setFailed(true)
         })
     }
     const onStorage = (event: StorageEvent) => {
@@ -198,10 +202,10 @@ export function AboutPage() {
     }
   }, [])
 
-  if (error) {
+  if (failed) {
     return (
       <div className="about-page">
-        <p className="about-page__note">{error}</p>
+        <p className="about-page__note">{t('aboutUnavailable')}</p>
       </div>
     )
   }

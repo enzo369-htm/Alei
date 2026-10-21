@@ -88,8 +88,11 @@ test('PUT guarda título, ficha y Sold de la pieza', () => {
   const piece = parsed.blocks[0]!.pieces[0]!
   assert.equal(piece.id, '00000000-0000-4000-8000-0000000000bb')
   assert.equal(piece.title, 'Night field')
+  assert.equal(piece.titleEn, '')
   assert.equal(piece.ficha, 'Oil on canvas\n40 × 50 cm')
+  assert.equal(piece.fichaEn, '')
   assert.equal(piece.text, 'A note about the painting.')
+  assert.equal(piece.textEn, '')
   assert.equal(piece.availability, 'sold')
   assert.equal(piece.slides, undefined)
 })
@@ -139,4 +142,33 @@ test('PUT rechaza más fotos extra que el máximo', () => {
     known,
   )
   assert.equal(parsed.ok, false)
+})
+
+test('PUT guarda el inglés y deja vacío el que no viene', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        titleEn: 'Hello',
+        pieces: [
+          {
+            mediaId: '00000000-0000-4000-8000-0000000000aa',
+            titleEn: 'Night',
+            fichaEn: 'Oil',
+            textEn: 'A note',
+          },
+        ],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  assert.equal(parsed.blocks[0]!.titleEn, 'Hello')
+  assert.equal(parsed.blocks[0]!.bodyEn, '')
+  const piece = parsed.blocks[0]!.pieces[0]!
+  assert.equal(piece.titleEn, 'Night')
+  assert.equal(piece.fichaEn, 'Oil')
+  assert.equal(piece.textEn, 'A note')
+  assert.equal(piece.title, '')
 })

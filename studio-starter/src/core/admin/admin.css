@@ -461,6 +461,11 @@ body {
   cursor: pointer;
 }
 
+.admin-about-add button[aria-pressed='true'] {
+  background: #111111;
+  color: #ffffff;
+}
+
 .admin-about-add button:disabled,
 .admin-about-block__head button:disabled {
   opacity: 0.45;

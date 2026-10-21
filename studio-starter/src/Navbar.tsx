@@ -1,13 +1,14 @@
 import { Link, useMatch } from 'react-router-dom'
-
-const links = [
-  { to: '/works', label: 'works' },
-  { to: '/colabs', label: 'other w' },
-  { to: '/about', label: 'about' },
-] as const
+import { useLocale } from './locale'
 
 export function Navbar() {
   const onHero = useMatch({ path: '/', end: true })
+  const { t } = useLocale()
+  const links = [
+    { to: '/works', label: t('navWorks') },
+    { to: '/colabs', label: t('navOther') },
+    { to: '/about', label: t('navAbout') },
+  ]
   const visible = onHero ? links : links.filter((link) => link.to === '/about')
 
   return (

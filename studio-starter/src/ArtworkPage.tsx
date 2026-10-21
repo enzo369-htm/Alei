@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { apiGetCanvas, type CanvasPiece, type PieceSlide } from './core/api/canvas'
 import type { MediaRecord } from './core/images/types'
 import { Picture } from './core/images/Picture'
+import { textOf, useLocale, type CopyKey } from './locale'
 import { site } from './site.config'
 import '@fontsource-variable/inter/wght-italic.css'
 
@@ -23,13 +24,21 @@ function sheetLabel(value: string) {
     .trim()
 }
 
-function mailHref(title: string, email: string) {
+function mailHref(email: string, subjectLine: string, bodyLine: string) {
   const clean = email.trim()
   if (!clean) return ''
-  const work = title.trim() || 'the work'
-  const subject = encodeURIComponent(`I'm interested in the work ${work}`)
-  const body = encodeURIComponent(`I'm interested in the work ${work}.`)
+  const subject = encodeURIComponent(subjectLine)
+  const body = encodeURIComponent(bodyLine)
   return `mailto:${clean}?subject=${subject}&body=${body}`
+}
+
+function interestLines(title: string, t: (key: CopyKey) => string) {
+  const work = title.trim()
+  if (!work) return { subject: t('interestEmptySubject'), body: t('interestEmptyBody') }
+  return {
+    subject: t('interestSubject').replaceAll('{work}', work),
+    body: t('interestBody').replaceAll('{work}', work),
+  }
 }
 
 type FrameSlide = {
@@ -61,6 +70,8 @@ function WorkImage({
   piece: CanvasPiece
   onMeasure: (measure: ImageMeasure | null) => void
 }) {
+  const { lang, t } = useLocale()
+  const alt = textOf(piece.title, piece.titleEn, lang)
   const slides = frameSlides(piece)
   const [index, setIndex] = useState(0)
   const frameRef = useRef<HTMLDivElement>(null)
@@ -143,25 +154,25 @@ function WorkImage({
                 <Picture
                   media={slide.media}
                   sizes="(max-width: 800px) 100vw, 50vw"
-                  alt={piece.title}
+                  alt={alt}
                   loading={slideIndex === index ? 'eager' : 'lazy'}
                 />
               ) : (
-                <img src={slide.src} alt={piece.title} loading={slideIndex === index ? 'eager' : 'lazy'} />
+                <img src={slide.src} alt={alt} loading={slideIndex === index ? 'eager' : 'lazy'} />
               )}
             </div>
           ))}
         </div>
       </div>
       {slides.length > 1 ? (
-        <button type="button" className="artwork__nav artwork__nav--prev" aria-label="Previous image" onClick={() => step(-1)}>
+        <button type="button" className="artwork__nav artwork__nav--prev" aria-label={t('previousImage')} onClick={() => step(-1)}>
           <span className="artwork__arrow" aria-hidden="true">
             ‹
           </span>
         </button>
       ) : null}
       {slides.length > 1 ? (
-        <button type="button" className="artwork__nav artwork__nav--next" aria-label="Next image" onClick={() => step(1)}>
+        <button type="button" className="artwork__nav artwork__nav--next" aria-label={t('nextImage')} onClick={() => step(1)}>
           <span className="artwork__arrow" aria-hidden="true">
             ›
           </span>
@@ -187,10 +198,13 @@ function letterInk(el: HTMLElement) {
 }
 
 function WorksSheet({ piece }: { piece: CanvasPiece }) {
-  const sheet = sheetLabel(piece.ficha)
-  const text = piece.text.trim()
+  const { lang, t } = useLocale()
+  const title = textOf(piece.title, piece.titleEn, lang)
+  const sheet = sheetLabel(textOf(piece.ficha, piece.fichaEn, lang))
+  const text = textOf(piece.text, piece.textEn, lang).trim()
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
+  const interest = interestLines(title, t)
   const [measure, setMeasure] = useState<ImageMeasure | null>(null)
   const [edges, setEdges] = useState<{ imageLeft: number; textEdge: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
@@ -198,7 +212,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
   useEffect(() => {
     const align = () => {
       const alei = document.querySelector<HTMLElement>('.site-nav__brand')
-      const about = [...document.querySelectorAll<HTMLElement>('.site-nav a')].find((link) => link.textContent?.trim() === 'about')
+      const about = document.querySelector<HTMLElement>('.site-nav a[href="/about"]')
       if (!alei || !about) return
       const a = letterInk(alei)
       const t = letterInk(about)
@@ -240,14 +254,14 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
         <WorkImage piece={piece} onMeasure={setMeasure} />
       </div>
       <div className="artwork__copy">
-        {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
+        {title.trim() ? <h1 className="artwork__title">{title}</h1> : null}
         {sheet ? <p className="artwork__sheet">{sheet}</p> : null}
         {text ? <p className="artwork__text">{text}</p> : null}
         <p className="artwork__foot">
           {sold ? (
-            <span className="artwork__status">sold</span>
+            <span className="artwork__status">{t('sold')}</span>
           ) : (
-            <a className="artwork__mail" href={mailHref(piece.title, email)}>
+            <a className="artwork__mail" href={mailHref(email, interest.subject, interest.body)}>
               {email}
             </a>
           )}
@@ -258,13 +272,14 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
 }
 
 export function ArtworkPage({ scope, label }: { scope: string; label: string }) {
+  const { lang, t } = useLocale()
   const { pieceId } = useParams()
   const [piece, setPiece] = useState<CanvasPiece | null | undefined>(undefined)
-  const [error, setError] = useState('')
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     setPiece(undefined)
-    setError('')
+    setFailed(false)
     void apiGetCanvas(scope, { slides: true })
       .then((data) => {
         const found = data.blocks
@@ -273,13 +288,13 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
           .find((item) => item.id === pieceId)
         setPiece(found ?? null)
       })
-      .catch(() => setError(`${label} is not available.`))
-  }, [scope, label, pieceId])
+      .catch(() => setFailed(true))
+  }, [scope, pieceId])
 
-  if (error) {
+  if (failed) {
     return (
       <div className="artwork">
-        <p className="artwork__note">{error}</p>
+        <p className="artwork__note">{t('unavailable')}</p>
       </div>
     )
   }
@@ -290,7 +305,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     return (
       <div className="artwork">
         <p className="artwork__note">
-          This work is not available. <Link to={`/${scope}`}>{label}</Link>
+          {t('workUnavailable')} <Link to={`/${scope}`}>{label}</Link>
         </p>
       </div>
     )
@@ -298,22 +313,26 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
 
   if (scope === 'works' || scope === 'colabs') return <WorksSheet piece={piece} />
 
-  const mail = mailHref(piece.title, site.contactEmail)
-  const status = piece.availability === 'sold' ? 'Sold' : 'Available'
+  const title = textOf(piece.title, piece.titleEn, lang)
+  const ficha = textOf(piece.ficha, piece.fichaEn, lang)
+  const text = textOf(piece.text, piece.textEn, lang)
+  const interest = interestLines(title, t)
+  const mail = mailHref(site.contactEmail, interest.subject, interest.body)
+  const status = piece.availability === 'sold' ? t('sold') : 'Available'
 
   return (
     <article className="artwork">
       <div className="artwork__image">
         {piece.media ? (
-          <Picture media={piece.media} sizes="(max-width: 800px) 100vw, 62vw" alt={piece.title} />
+          <Picture media={piece.media} sizes="(max-width: 800px) 100vw, 62vw" alt={title} />
         ) : (
-          <img src={piece.src} alt={piece.title} />
+          <img src={piece.src} alt={title} />
         )}
       </div>
       <div className="artwork__meta">
-        {piece.title ? <h1 className="artwork__title">{piece.title}</h1> : null}
-        {piece.ficha ? <p className="artwork__ficha">{piece.ficha}</p> : null}
-        {piece.text ? <p className="artwork__ficha">{piece.text}</p> : null}
+        {title.trim() ? <h1 className="artwork__title">{title}</h1> : null}
+        {ficha.trim() ? <p className="artwork__ficha">{ficha}</p> : null}
+        {text.trim() ? <p className="artwork__ficha">{text}</p> : null}
         <p className="artwork__status">{status}</p>
         {mail ? (
           <a className="artwork__mail" href={mail}>

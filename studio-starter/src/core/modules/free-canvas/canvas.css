@@ -346,13 +346,28 @@
 
 .admin-piece-sheet {
   display: grid;
-  grid-template-columns: minmax(12rem, 0.9fr) minmax(14rem, 1.1fr) minmax(16rem, 1.3fr) auto;
-  gap: 10px 16px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 1.2fr) max-content;
+  grid-template-areas: 'title ficha text state';
+  gap: 14px 16px;
   align-items: start;
   margin: 8px 0 18px;
   padding: 10px 0 12px;
   border-bottom: 1px solid var(--admin-line, #e4e0d8);
 }
+
+.admin-piece-sheet--english {
+  grid-template-areas:
+    'title ficha text state'
+    'title-en ficha-en text-en .';
+}
+
+.admin-piece-sheet__title { grid-area: title; }
+.admin-piece-sheet__ficha { grid-area: ficha; }
+.admin-piece-sheet__text { grid-area: text; }
+.admin-piece-sheet__avail { grid-area: state; }
+.admin-piece-sheet__title-en { grid-area: title-en; }
+.admin-piece-sheet__ficha-en { grid-area: ficha-en; }
+.admin-piece-sheet__text-en { grid-area: text-en; }
 
 .admin-piece-sheet .admin-login__label,
 .admin-piece-sheet .admin-login__input,
@@ -368,14 +383,22 @@
 }
 
 .admin-piece-sheet .admin-textarea {
-  min-height: 4.2rem;
+  min-height: 5.6rem;
 }
 
 .admin-piece-sheet .admin-actions {
   margin-top: 0;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  width: max-content;
+}
+
+.admin-piece-sheet .admin-actions .admin-btn {
+  width: auto;
+  flex: none;
+  padding: 5px 8px;
 }
 
 .admin-piece-sheet__note {
@@ -387,10 +410,10 @@
 }
 
 .admin-piece-sheet__avail {
-  min-width: 9rem;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: max-content;
 }
 
 .admin-piece-slides {
@@ -493,12 +516,17 @@
 }
 
 @media (max-width: 800px) {
-  .admin-piece-sheet {
+  .admin-piece-sheet,
+  .admin-piece-sheet--english {
     grid-template-columns: 1fr;
-  }
-
-  .admin-piece-sheet .admin-actions {
-    flex-direction: row;
+    grid-template-areas:
+      'title'
+      'title-en'
+      'ficha'
+      'ficha-en'
+      'text'
+      'text-en'
+      'state';
   }
 }
 
