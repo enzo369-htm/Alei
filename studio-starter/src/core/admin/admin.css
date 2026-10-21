@@ -346,11 +346,24 @@ body {
 }
 
 .admin-media-grid__item {
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 8px;
   background: var(--admin-panel);
   border: 1px solid var(--admin-line);
   border-radius: var(--admin-radius);
+}
+
+.admin-media-grid__item .admin-editorial-list__ops {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: auto;
+}
+
+.admin-media-grid__item .admin-editorial-list__ops button {
+  width: 100%;
+  padding: 4px 0;
 }
 
 .admin-media-grid__item img {

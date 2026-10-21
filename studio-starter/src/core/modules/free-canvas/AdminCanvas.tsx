@@ -18,6 +18,10 @@ import './canvas.css'
 const MAX_PER_KIND = 4
 const SLIDE_MAX = 12
 
+function isGallery(scope: string) {
+  return scope === 'works' || scope === 'colabs'
+}
+
 function thumbSrc(slide: PieceSlide) {
   const widths = slide.media?.variants && 'widths' in slide.media.variants ? slide.media.variants.widths : []
   const small = [...widths].sort((a, b) => a.w - b.w)[0]
@@ -169,7 +173,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     setError('')
     try {
       const { block } = await apiAddCanvasBlock(scope, kind)
-      setBlocks((prev) => ((scope === 'works' || scope === 'colabs') && kind === 'canvas' ? [block, ...prev] : [...prev, block]))
+      setBlocks((prev) => (isGallery(scope) && kind === 'canvas' ? [block, ...prev] : [...prev, block]))
       setStatus(kind === 'text' ? 'Texto agregado — guardá cuando lo edites' : 'Lienzo agregado')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agregar')
@@ -428,7 +432,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               </button>
             </div>
           </div>
-          {scope === 'works' && (
+          {isGallery(scope) && (
             <div className="admin-piece-slides">
               <p className="admin-login__label">Otras imágenes</p>
               <p className="admin-piece-slides__hint">
@@ -550,12 +554,12 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
         ) : (
           <article
             key={block.id}
-            className={`admin-canvas-block${scope === 'works' && block.visible === false ? ' is-hidden' : ''}`}
+            className={`admin-canvas-block${isGallery(scope) && block.visible === false ? ' is-hidden' : ''}`}
           >
             <div className="admin-canvas-block__bar">
               <p className="admin-login__kicker">Lienzo {index + 1}</p>
               <div className="admin-actions">
-                {scope === 'works' && (
+                {isGallery(scope) && (
                   <button
                     type="button"
                     className={`admin-btn${block.visible !== false ? ' admin-btn--primary' : ''}`}

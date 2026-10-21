@@ -186,32 +186,14 @@ function letterInk(el: HTMLElement) {
   }
 }
 
-function readArtworkSystem(): 1 | 2 {
-  try {
-    return window.sessionStorage.getItem('artwork-system') === '2' ? 2 : 1
-  } catch {
-    return 1
-  }
-}
-
 function WorksSheet({ piece }: { piece: CanvasPiece }) {
   const sheet = sheetLabel(piece.ficha)
   const text = piece.text.trim()
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
   const [measure, setMeasure] = useState<ImageMeasure | null>(null)
-  const [system, setSystem] = useState<1 | 2>(readArtworkSystem)
   const [edges, setEdges] = useState<{ imageLeft: number; textEdge: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
-
-  function chooseSystem(next: 1 | 2) {
-    try {
-      window.sessionStorage.setItem('artwork-system', String(next))
-    } catch {
-      // The toggle still applies on this page when storage is blocked.
-    }
-    setSystem(next)
-  }
 
   useEffect(() => {
     const align = () => {
@@ -238,7 +220,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
   return (
     <article
       ref={sheetRef}
-      className={measure ? `artwork artwork--works artwork--system-${system} artwork--placed` : `artwork artwork--works artwork--system-${system}`}
+      className={measure ? 'artwork artwork--works artwork--placed' : 'artwork artwork--works'}
       style={{
         ...(edges
           ? {
@@ -271,14 +253,6 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
           )}
         </p>
       </div>
-      <div className="artwork-systems">
-        <button type="button" className={system === 1 ? 'is-on' : undefined} onClick={() => chooseSystem(1)}>
-          sistema 1 · flechas dentro
-        </button>
-        <button type="button" className={system === 2 ? 'is-on' : undefined} onClick={() => chooseSystem(2)}>
-          sistema 2 · flechas afuera
-        </button>
-      </div>
     </article>
   )
 }
@@ -294,7 +268,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     void apiGetCanvas(scope, { slides: true })
       .then((data) => {
         const found = data.blocks
-          .filter((block) => scope !== 'works' || block.kind !== 'canvas' || block.visible !== false)
+          .filter((block) => (scope !== 'works' && scope !== 'colabs') || block.kind !== 'canvas' || block.visible !== false)
           .flatMap((block) => block.pieces)
           .find((item) => item.id === pieceId)
         setPiece(found ?? null)

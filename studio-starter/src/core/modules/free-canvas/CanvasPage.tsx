@@ -44,7 +44,7 @@ export function CanvasPage({ scope }: Props) {
         <p className="canvas-page__note">Todavía no hay bloques en este lienzo.</p>
       )}
       {blocks
-        .filter((block) => scope !== 'works' || block.kind !== 'canvas' || block.visible !== false)
+        .filter((block) => (scope !== 'works' && scope !== 'colabs') || block.kind !== 'canvas' || block.visible !== false)
         .map((block) =>
           block.kind === 'text' ? (
             <article key={block.id} className="canvas-page__text">

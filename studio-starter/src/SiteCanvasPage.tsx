@@ -4,7 +4,7 @@ import { CanvasViewer } from './core/modules/free-canvas/CanvasViewer'
 import './core/modules/free-canvas/canvas.css'
 
 function isPublicBlock(block: CanvasBlock, scope: string) {
-  if (scope !== 'works' || block.kind !== 'canvas') return true
+  if ((scope !== 'works' && scope !== 'colabs') || block.kind !== 'canvas') return true
   return block.visible !== false
 }
 
@@ -56,8 +56,8 @@ export function SiteCanvasPage({ scope, label }: { scope: string; label: string 
             key={block.id}
             items={piecesOf(block, scope)}
             heightRatio={block.heightRatio}
-            hideAvailable={scope === 'works'}
-            hoverChrome={scope === 'works'}
+            hideAvailable={scope === 'works' || scope === 'colabs'}
+            hoverChrome={scope === 'works' || scope === 'colabs'}
           />
         ),
       )}
