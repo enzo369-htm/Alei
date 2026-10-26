@@ -115,7 +115,47 @@ export function parseAboutBlocks(body: string): AboutBlock[] | null {
   }
 }
 
-export function serializeAboutBlocks(blocks: AboutBlock[]) {
+export const DEFAULT_ABOUT_EMAIL = 'aleidraws@gmail.com'
+export const DEFAULT_ABOUT_INSTAGRAM = '@aleidraws'
+
+export type AboutContact = {
+  email: string
+  instagram: string
+}
+
+export function defaultAboutContact(): AboutContact {
+  return { email: DEFAULT_ABOUT_EMAIL, instagram: DEFAULT_ABOUT_INSTAGRAM }
+}
+
+/** Sin `contact` en el JSON, se mantienen los datos que ya se muestran. */
+export function parseAboutContact(body: string): AboutContact {
+  const fallback = defaultAboutContact()
+  if (!body.trim()) return fallback
+  try {
+    const data = JSON.parse(body) as { contact?: unknown }
+    if (!data || typeof data !== 'object' || Array.isArray(data) || !('contact' in data)) return fallback
+    const contact = data.contact
+    if (!contact || typeof contact !== 'object' || Array.isArray(contact)) return fallback
+    const record = contact as Record<string, unknown>
+    return {
+      email: typeof record.email === 'string' ? record.email : fallback.email,
+      instagram: typeof record.instagram === 'string' ? record.instagram : fallback.instagram,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+export function instagramHref(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  const handle = trimmed.replace(/^@+/, '').split(/[/?#]/)[0]
+  if (!handle) return ''
+  return `https://www.instagram.com/${handle}/`
+}
+
+export function serializeAboutBlocks(blocks: AboutBlock[], contact: AboutContact = defaultAboutContact()) {
   return JSON.stringify({
     aboutBlocks: blocks.map((block) => (block.kind === 'preserved' && block.raw ? block.raw : {
       id: block.id,
@@ -127,6 +167,10 @@ export function serializeAboutBlocks(blocks: AboutBlock[]) {
       body: block.body,
       bodyEn: block.bodyEn,
     })),
+    contact: {
+      email: contact.email,
+      instagram: contact.instagram,
+    },
   })
 }
 

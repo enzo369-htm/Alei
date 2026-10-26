@@ -5,7 +5,9 @@ import { Picture } from '../images/Picture.tsx'
 import { prepareVariants } from '../images/prepareVariants.ts'
 import {
   aboutBlockLabel,
+  defaultAboutContact,
   parseAboutBlocks,
+  parseAboutContact,
   publishAboutUpdated,
   serializeAboutBlocks,
   type AboutBlock,
@@ -27,6 +29,8 @@ function headingFrom(list: AboutBlock[], fallback: string) {
 export function AdminAboutEditor() {
   const [pageTitle, setPageTitle] = useState('')
   const [blocks, setBlocks] = useState<AboutBlock[]>([])
+  const [email, setEmail] = useState('')
+  const [instagram, setInstagram] = useState('')
   const [image, setImage] = useState<PageRecord['image']>(null)
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -44,7 +48,10 @@ export function AdminAboutEditor() {
       .then((page) => {
         if (cancelled) return
         const next = parseAboutBlocks(page.body)
+        const contact = parseAboutContact(page.body)
         setPageTitle(page.title)
+        setEmail(contact.email)
+        setInstagram(contact.instagram)
         if (!imageTouched.current) setImage(page.image)
         if (!next) {
           setError('El texto guardado de About no se reconoce. No se ha sustituido, y Guardar sigue desactivado para no pisarlo.')
@@ -59,6 +66,8 @@ export function AdminAboutEditor() {
         if (message === 'No encontrado') {
           setPageTitle('')
           setBlocks(parseAboutBlocks('') ?? [])
+          setEmail(defaultAboutContact().email)
+          setInstagram(defaultAboutContact().instagram)
           if (!imageTouched.current) setImage(null)
           setReady(true)
           return
@@ -84,7 +93,7 @@ export function AdminAboutEditor() {
     try {
       await apiSavePage(SLUG, {
         title: headingFrom(nextBlocks, pageTitle),
-        body: serializeAboutBlocks(nextBlocks),
+        body: serializeAboutBlocks(nextBlocks, { email, instagram }),
         imageMediaId: nextImage?.id ?? null,
       })
       publishAboutUpdated()
@@ -251,6 +260,31 @@ export function AdminAboutEditor() {
           </li>
         ))}
       </ol>
+
+      <section className="admin-about-block">
+        <p className="admin-login__label">Contacto</p>
+        <label className="admin-login__label" htmlFor="about-email">
+          Correo
+          <input
+            id="about-email"
+            className="admin-login__input"
+            type="email"
+            value={email}
+            disabled={!ready || locked}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </label>
+        <label className="admin-login__label" htmlFor="about-instagram">
+          Instagram
+          <input
+            id="about-instagram"
+            className="admin-login__input"
+            value={instagram}
+            disabled={!ready || locked}
+            onChange={(event) => setInstagram(event.target.value)}
+          />
+        </label>
+      </section>
 
       <section className="admin-about-block admin-about-image">
         <p className="admin-login__label">Imagen</p>

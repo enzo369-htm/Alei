@@ -1,13 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { apiGetPage, type PageRecord } from './core/api/pages'
 import { Picture } from './core/images/Picture'
-import { site } from './site.config'
-import { ABOUT_UPDATED, parseAboutBlocks, type AboutBlock } from './about-blocks'
+import { ABOUT_UPDATED, instagramHref, parseAboutBlocks, parseAboutContact, type AboutBlock } from './about-blocks'
 import { textOf, useLocale } from './locale'
-
-const ABOUT_EMAIL = 'aleidraws@gmail.com'
-const ABOUT_INSTAGRAM = '@aleidraws'
-const ABOUT_INSTAGRAM_URL = 'https://www.instagram.com/aleidraws/'
 
 function TitleText({ bold, plain }: { bold: string; plain: string }) {
   return (
@@ -110,7 +105,10 @@ function letterRight(el: HTMLElement) {
 }
 
 function AboutSheet({ page }: { page: PageRecord }) {
-  const email = site.contactEmail.trim() || ABOUT_EMAIL
+  const contact = useMemo(() => parseAboutContact(page.body), [page.body])
+  const email = contact.email.trim()
+  const instagram = contact.instagram.trim()
+  const instagramUrl = instagramHref(instagram)
   const blocks = useMemo(() => parseAboutBlocks(page.body), [page.body])
   const [textEdge, setTextEdge] = useState<number | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
@@ -153,14 +151,20 @@ function AboutSheet({ page }: { page: PageRecord }) {
           <AboutBlockView key={block.id} block={block} />
         ))}
       </div>
-      <div className="about-page__contact">
-        <a className="about-page__mail" href={`mailto:${email}`}>
-          {email}
-        </a>
-        <a className="about-page__social" href={ABOUT_INSTAGRAM_URL}>
-          {ABOUT_INSTAGRAM}
-        </a>
-      </div>
+      {email || instagramUrl ? (
+        <div className="about-page__contact">
+          {email ? (
+            <a className="about-page__mail" href={`mailto:${email}`}>
+              {email}
+            </a>
+          ) : null}
+          {instagramUrl ? (
+            <a className="about-page__social" href={instagramUrl}>
+              {instagram}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   )
 }
