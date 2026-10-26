@@ -19,6 +19,20 @@ function TitleText({ bold, plain }: { bold: string; plain: string }) {
   )
 }
 
+function AboutInk({ text }: { text: string }) {
+  const parts = text.split(/\n{2,}/).filter((part) => part.length > 0)
+  if (parts.length < 2) return <span className="about-page__ink">{text}</span>
+  return (
+    <span className="about-page__ink">
+      {parts.map((part, index) => (
+        <span key={index} className="about-page__para">
+          {part}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 function AboutBlockView({ block }: { block: AboutBlock }) {
   const { lang } = useLocale()
   if (block.kind === 'preserved') return null
@@ -42,7 +56,7 @@ function AboutBlockView({ block }: { block: AboutBlock }) {
       ) : null}
       {body.trim() ? (
         <div className={block.kind === 'title' ? 'about-page__bio' : 'about-page__text'}>
-          <span className="about-page__ink">{body}</span>
+          <AboutInk text={body} />
         </div>
       ) : null}
     </section>
@@ -56,12 +70,15 @@ function fitBlockInk(root: HTMLElement) {
     if (!ink) continue
     ink.style.transform = ''
     outer.style.height = ''
+    const paras = [...ink.querySelectorAll<HTMLElement>(':scope > .about-page__para')]
+    const startHost = paras[0] ?? ink
+    const endHost = paras[paras.length - 1] ?? ink
     const start = document.createElement('span')
     const end = document.createElement('span')
     start.style.cssText = probeCss
     end.style.cssText = probeCss
-    ink.insertBefore(start, ink.firstChild)
-    ink.appendChild(end)
+    startHost.insertBefore(start, startHost.firstChild)
+    endHost.appendChild(end)
     const firstBase = start.getBoundingClientRect().bottom
     const lastBase = end.getBoundingClientRect().bottom
     start.remove()

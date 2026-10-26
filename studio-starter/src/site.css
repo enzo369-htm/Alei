@@ -7,7 +7,7 @@ body,
 
 .site {
   --site-gutter: 70px;
-  --site-nav-height: 58px;
+  --site-nav-height: calc(58px * 0.95);
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -27,8 +27,9 @@ body,
 }
 
 .site-nav {
-  position: relative;
-  z-index: 20;
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   flex-shrink: 0;
   align-items: flex-end;
@@ -61,7 +62,7 @@ body,
   display: flex;
   align-items: flex-end;
   gap: 34px;
-  font-size: calc(1.08em / 1.2 * 0.95);
+  font-size: calc(1.08em / 1.2 * 0.95 * 0.95);
   margin: 0;
   padding: 0;
   line-height: 1;
@@ -620,6 +621,15 @@ body,
 .about-page__ink {
   display: block;
   white-space: pre-wrap;
+}
+
+.about-page__para {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.about-page__para + .about-page__para {
+  margin-top: calc(1lh * 0.97);
 }
 
 .about-page__label {

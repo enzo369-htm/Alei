@@ -8,7 +8,7 @@ const KEY = 'alei-lang'
 const copy = {
   es: {
     navWorks: 'works',
-    navOther: 'other w',
+    navOther: 'projects',
     navAbout: 'about',
     empty: 'Todavía no hay nada.',
     unavailable: 'No está disponible.',
@@ -24,7 +24,7 @@ const copy = {
   },
   en: {
     navWorks: 'works',
-    navOther: 'other w',
+    navOther: 'projects',
     navAbout: 'about',
     empty: 'Nothing here yet.',
     unavailable: 'This is not available.',

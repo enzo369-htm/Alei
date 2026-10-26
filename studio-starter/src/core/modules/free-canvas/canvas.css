@@ -197,33 +197,36 @@
 .studio-viewer__meta {
   --work-title-size: calc(13px * 1.05 * 0.85 * 1.1);
   --work-dot-scale: calc(0.81225 * 0.5 / 0.85 * 1.15 / 1.1);
+  --work-dot: calc(var(--work-title-size) * var(--work-dot-scale));
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(103% + 2px);
   right: 0;
   left: 0;
-  display: flex;
-  align-items: center;
+  font-size: var(--work-title-size);
+  line-height: 1;
   pointer-events: none;
   opacity: 0;
 }
 
 .studio-viewer__title {
-  color: rgba(0, 0, 0, 0.8075);
-  font-size: var(--work-title-size);
+  display: block;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: inherit;
   font-weight: 500;
-  line-height: 1;
+  line-height: inherit;
+  padding-right: calc(var(--work-dot) + 0.35em);
   text-align: left;
   pointer-events: none;
 }
 
 .studio-viewer__sold {
-  width: calc(var(--work-title-size) * var(--work-dot-scale));
-  height: calc(var(--work-title-size) * var(--work-dot-scale));
-  margin-top: 0;
-  margin-left: auto;
+  position: absolute;
+  right: 0;
+  bottom: calc((1lh - var(--work-dot)) / 2);
+  width: var(--work-dot);
+  height: var(--work-dot);
   border-radius: 50%;
   background: #e10600;
-  flex: 0 0 auto;
 }
 
 .studio-viewer__status {
