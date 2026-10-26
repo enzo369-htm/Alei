@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { clamp, defaultPositionForIndex, withDefaultPositions } from './layout.ts'
+import { clamp, defaultPositionForIndex, readingOrder, withDefaultPositions } from './layout.ts'
 
 test('clamp recorta al rango', () => {
   assert.equal(clamp(3, 0, 2), 2)
@@ -25,6 +25,19 @@ test('withDefaultPositions no apila ítems nuevos', () => {
   ])
   assert.notEqual(items[0]!.x, items[1]!.x)
   assert.equal(items[0]!.width, 24)
+})
+
+test('readingOrder recorre cada fila de izquierda a derecha', () => {
+  const ordered = readingOrder([
+    { id: 'right', x: 79, y: 3 },
+    { id: 'left', x: 4, y: 6 },
+    { id: 'mid', x: 26, y: 6 },
+    { id: 'low', x: 27, y: 64 },
+  ])
+  assert.deepEqual(
+    ordered.map((item) => item.id),
+    ['left', 'mid', 'right', 'low'],
+  )
 })
 
 test('defaultPositionForIndex alterna columnas', () => {

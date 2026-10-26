@@ -160,6 +160,10 @@ body,
   text-align: right;
 }
 
+.site .canvas-page__text:not(:has(h1, p)) {
+  display: none;
+}
+
 .artwork {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
@@ -331,6 +335,10 @@ body,
 
   .site-nav__links.is-open {
     display: flex;
+  }
+
+  .site .canvas-page {
+    padding: 12px var(--site-gutter) 64px;
   }
 
   .artwork {

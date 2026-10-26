@@ -38,6 +38,18 @@ export function withDefaultPositions(items: CanvasItemInput[]): CanvasItem[] {
   })
 }
 
+/** Top to bottom, and left to right inside the same row of the canvas. */
+export function readingOrder<T extends { x: number; y: number }>(items: T[]): T[] {
+  const pending = [...items].sort((a, b) => a.y - b.y || a.x - b.x)
+  const rows: T[][] = []
+  for (const item of pending) {
+    const row = rows.find((group) => Math.abs(group[0].y - item.y) < 12)
+    if (row) row.push(item)
+    else rows.push([item])
+  }
+  return rows.flatMap((row) => row.sort((a, b) => a.x - b.x))
+}
+
 export function defaultPositionForIndex(index: number): Pick<CanvasItem, 'x' | 'y' | 'width'> {
   const col = index % 2
   const row = Math.floor(index / 2)
