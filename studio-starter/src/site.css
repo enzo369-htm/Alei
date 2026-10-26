@@ -339,6 +339,7 @@ body,
 
   .site .canvas-page {
     padding: 12px var(--site-gutter) 64px;
+    overflow-x: clip;
   }
 
   .artwork {

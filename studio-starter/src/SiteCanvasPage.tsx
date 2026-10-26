@@ -62,8 +62,6 @@ export function SiteCanvasPage({ scope }: { scope: string }) {
             heightRatio={block.heightRatio}
             hideAvailable={scope === 'works' || scope === 'colabs'}
             hoverChrome={scope === 'works' || scope === 'colabs'}
-            previousLabel={t('previousWork')}
-            nextLabel={t('nextWork')}
           />
         )
       })}
