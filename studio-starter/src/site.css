@@ -740,7 +740,7 @@ body,
 
 .about-page__label {
   margin: 0 0 8px;
-  font-size: calc(20px * 0.97 * 0.98);
+  font-size: calc(20px * 0.97 * 0.98 * 0.97);
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
