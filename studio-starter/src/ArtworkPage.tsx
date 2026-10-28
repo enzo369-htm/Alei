@@ -144,16 +144,20 @@ function WorkImage({
     setIndex((current) => (current + delta + slides.length) % slides.length)
   }
 
+  const current = slides[index]
+  const ratio =
+    current?.media?.width && current?.media?.height ? `${current.media.width} / ${current.media.height}` : undefined
+
   return (
     <>
-      <div className="artwork__frame" ref={frameRef}>
+      <div className="artwork__frame" ref={frameRef} style={ratio ? { aspectRatio: ratio } : undefined}>
         <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
           {slides.map((slide, slideIndex) => (
             <div key={slide.id} className="artwork__slide">
               {slide.media ? (
                 <Picture
                   media={slide.media}
-                  sizes="(max-width: 800px) 100vw, 50vw"
+                  sizes="(max-width: 800px) 100vw, 58vw"
                   alt={alt}
                   loading={slideIndex === index ? 'eager' : 'lazy'}
                 />

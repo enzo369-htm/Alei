@@ -367,18 +367,28 @@ body,
   display: none;
 }
 
+.site--piece {
+  --site-gutter: 20px;
+}
+
+.site--piece .site-nav {
+  align-items: center;
+  padding: 0 20px;
+}
+
 .artwork.artwork--works {
-  --image-left: calc(var(--site-gutter) - 5px);
-  --text-edge: var(--site-gutter);
+  --image-left: 20px;
+  --text-edge: 20px;
+  --piece-text: clamp(13px, 1.39vw, 25px);
   display: grid;
-  grid-template-columns: calc(50vw - var(--image-left)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 573fr) minmax(0, 404fr);
   grid-template-areas: 'image copy';
   justify-content: start;
-  align-items: stretch;
-  column-gap: 42px;
+  align-items: start;
+  column-gap: 1vw;
   row-gap: 0;
   min-height: 0;
-  padding: 10px 0 100px var(--image-left);
+  padding: 8px var(--text-edge) 80px var(--image-left);
   box-sizing: border-box;
 }
 
@@ -387,23 +397,25 @@ body,
   position: relative;
   z-index: 1;
   width: 100%;
-  aspect-ratio: 850 / 580;
+  height: auto;
+  aspect-ratio: auto;
   align-self: start;
 }
 
 .artwork--works:not(.artwork--about) .artwork__stage {
-  aspect-ratio: 3 / 2;
+  aspect-ratio: auto;
 }
 
 .artwork--works .artwork__frame {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
   overflow: hidden;
   background: #ffffff;
 }
 
 .artwork--works .artwork__track {
   display: flex;
+  align-items: stretch;
   height: 100%;
   width: 100%;
   min-width: 0;
@@ -436,28 +448,28 @@ body,
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(80, 80, 80, 0.5);
-  font-size: 42px;
+  color: rgba(120, 120, 120, 0.9);
+  font-size: 16px;
   font-weight: 400;
   line-height: 1;
   cursor: pointer;
 }
 
 .artwork--works .artwork__nav--prev {
-  left: 8px;
+  left: 10px;
   transform: translateY(-50%);
 }
 
 .artwork--works .artwork__nav--next {
-  right: 8px;
+  right: 10px;
   left: auto;
   transform: translateY(-50%);
 }
 
 .artwork--works .artwork__arrow {
   display: block;
-  color: rgba(80, 80, 80, 0.5);
-  font-size: 42px;
+  color: rgba(120, 120, 120, 0.9);
+  font-size: 16px;
   font-style: normal;
   font-weight: 400;
   line-height: 1;
@@ -470,10 +482,10 @@ body,
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  align-self: stretch;
+  align-self: start;
   width: auto;
   max-width: none;
-  min-height: 100%;
+  min-height: 0;
   padding-top: 0;
   overflow: visible;
 }
@@ -481,9 +493,9 @@ body,
 .artwork--works .artwork__title,
 .artwork--works .artwork__sheet,
 .artwork--works .artwork__text {
-  width: calc(100% - var(--text-edge));
+  width: 100%;
   max-width: none;
-  margin-right: var(--text-edge);
+  margin-right: 0;
   margin-left: 0;
   box-sizing: border-box;
   padding-left: 0;
@@ -492,13 +504,13 @@ body,
 
 .artwork--works .artwork__title {
   margin-top: 0;
-  margin-bottom: 4px;
+  margin-bottom: 0;
   color: #000000;
-  font-size: 22.5px;
+  font-size: var(--piece-text);
   font-weight: 700;
   font-style: normal;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
   text-transform: none;
   white-space: normal;
 }
@@ -514,21 +526,21 @@ body,
 .artwork--works .artwork__sheet {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 14.4px;
-  font-style: italic;
-  line-height: 1.3;
+  font-size: var(--piece-text);
+  font-style: normal;
+  line-height: 1.2;
 }
 
 .artwork--works .artwork__text {
-  margin-top: 12.5px;
+  margin-top: 1.2em;
   margin-bottom: 0;
-  font-size: 13px;
+  font-size: var(--piece-text);
   font-style: normal;
-  line-height: 1.5;
+  line-height: 1.2;
 }
 
 .artwork--works .artwork__foot {
-  margin: auto 0 0;
+  margin: calc(var(--piece-text) * 1.2) 0 0;
   padding: 0;
 }
 
@@ -553,12 +565,12 @@ body,
 
 .artwork--works .artwork__status {
   color: #e10600;
-  font-size: 14.4px;
+  font-size: var(--piece-text);
 }
 
 .artwork--works .artwork__mail {
   color: #000000;
-  font-size: calc(9.9px * 0.85 * 1.1 * 1.15 * 0.9);
+  font-size: var(--piece-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -579,7 +591,7 @@ body,
 
   .artwork--works .artwork__nav,
   .artwork--works .artwork__arrow {
-    font-size: 22px;
+    font-size: 16px;
   }
 
   .artwork--works .artwork__stage,
@@ -590,12 +602,9 @@ body,
     height: auto;
   }
 
-  .artwork--works .artwork__stage {
-    aspect-ratio: 850 / 580;
-  }
-
+  .artwork--works .artwork__stage,
   .artwork--works:not(.artwork--about) .artwork__stage {
-    aspect-ratio: 3 / 2;
+    aspect-ratio: auto;
   }
 
   .artwork--works .artwork__title,

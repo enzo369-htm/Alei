@@ -6,10 +6,13 @@ import { Navbar } from './Navbar'
 import './site.css'
 
 export function SiteLayout() {
-  const home = useLocation().pathname === '/'
+  const { pathname } = useLocation()
+  const home = pathname === '/'
+  const piece = /^\/(works|colabs)\/[^/]+$/.test(pathname)
+  const siteClass = ['site', home ? 'site--home' : '', piece ? 'site--piece' : ''].filter(Boolean).join(' ')
 
   return (
-    <div className={home ? 'site site--home' : 'site'}>
+    <div className={siteClass}>
       <Navbar />
       <main className="site-main">
         <Outlet />
