@@ -526,15 +526,15 @@ body,
 .artwork--works .artwork__sheet {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: var(--piece-text);
-  font-style: normal;
+  font-size: 12px;
+  font-style: italic;
   line-height: 1.2;
 }
 
 .artwork--works .artwork__text {
   margin-top: 1.2em;
   margin-bottom: 0;
-  font-size: var(--piece-text);
+  font-size: 12px;
   font-style: normal;
   line-height: 1.2;
 }
@@ -565,7 +565,7 @@ body,
 
 .artwork--works .artwork__status {
   color: #e10600;
-  font-size: var(--piece-text);
+  font-size: 12px;
 }
 
 .artwork--works .artwork__mail {
@@ -712,7 +712,7 @@ body,
 
 .about-page__bio {
   margin-top: 8px;
-  font-size: var(--about-note-size);
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.45;
@@ -720,8 +720,8 @@ body,
 
 .about-page__text {
   margin: 0;
-  color: rgba(0, 0, 0, 0.68);
-  font-size: var(--about-note-size);
+  color: #000000;
+  font-size: 12px;
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0;
@@ -752,8 +752,8 @@ body,
 
 .about-page__label {
   margin: 0 0 8px;
-  color: rgba(0, 0, 0, 0.68);
-  font-size: calc(20px * 0.97 * 0.98 * 0.97 * 0.95);
+  color: #000000;
+  font-size: calc(20px * 0.97 * 0.98 * 0.97 * 0.95 * 0.96);
   font-weight: 400;
   font-style: italic;
   letter-spacing: 0;
