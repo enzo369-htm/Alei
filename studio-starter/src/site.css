@@ -711,8 +711,10 @@ body,
 
 .about-page__text {
   margin: 0;
+  color: rgba(0, 0, 0, 0.68);
   font-size: var(--about-note-size);
   font-weight: 400;
+  font-style: italic;
   letter-spacing: 0;
   line-height: 1.4;
 }
@@ -736,13 +738,15 @@ body,
 }
 
 .about-page__para + .about-page__para {
-  margin-top: calc(1lh * 0.97);
+  margin-top: calc(1lh * 0.97 * 0.96 * 0.97);
 }
 
 .about-page__label {
   margin: 0 0 8px;
-  font-size: calc(20px * 0.97 * 0.98 * 0.97);
+  color: rgba(0, 0, 0, 0.68);
+  font-size: calc(20px * 0.97 * 0.98 * 0.97 * 0.95);
   font-weight: 400;
+  font-style: italic;
   letter-spacing: 0;
   line-height: 1;
 }

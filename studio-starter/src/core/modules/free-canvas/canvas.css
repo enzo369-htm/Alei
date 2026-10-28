@@ -199,9 +199,9 @@
   --work-dot-scale: calc(0.81225 * 0.5 / 0.85 * 1.15 / 1.1);
   --work-dot: calc(var(--work-title-size) * var(--work-dot-scale));
   position: absolute;
-  top: calc(103% + 2px);
-  right: 0;
-  left: 0;
+  top: calc(100% + 4.34px);
+  right: 6px;
+  left: 6px;
   font-size: var(--work-title-size);
   line-height: 1;
   pointer-events: none;
@@ -313,8 +313,10 @@
   top: auto;
   right: auto;
   left: auto;
-  width: 100%;
-  margin-top: calc(3% + 2px);
+  width: calc(100% - 12px);
+  margin-top: 4.34px;
+  margin-right: 6px;
+  margin-left: 6px;
   opacity: 1;
 }
 
