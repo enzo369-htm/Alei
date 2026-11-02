@@ -12,8 +12,6 @@ export function Navbar() {
     { to: '/colabs', label: t('navOther') },
     { to: '/about', label: t('navAbout') },
   ]
-  const visible = onHero ? links : links.filter((link) => link.to === '/about')
-
   useEffect(() => {
     setOpen(false)
   }, [pathname])
@@ -49,8 +47,8 @@ export function Navbar() {
       {open ? (
         <button type="button" className="site-nav__backdrop" aria-label={t('navClose')} onClick={() => setOpen(false)} />
       ) : null}
-      <ul id="site-menu" className={`site-nav__links${open ? ' is-open' : ''}`}>
-        {visible.map((link) => (
+      <ul id="site-menu" className={`site-nav__links${onHero ? ' is-home' : ''}${open ? ' is-open' : ''}`}>
+        {links.map((link) => (
           <li key={link.to}>
             <Link to={link.to}>{link.label}</Link>
           </li>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Picture } from '../../images/Picture.tsx'
 import { readingOrder, withDefaultPositions } from './layout.ts'
 import type { CanvasItem, CanvasItemInput } from './types.ts'
@@ -84,9 +84,53 @@ function MobileList({
   hoverChrome: boolean
 }) {
   const ordered = readingOrder(items)
+  const orderKey = ordered.map((item) => item.id).join('\n')
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [currentId, setCurrentId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const focus = window.innerHeight * 0.62
+      const top = window.innerHeight * 0.12
+      const bottom = window.innerHeight * 0.9
+      let best: string | null = null
+      let bestDist = Infinity
+      for (const meta of root.querySelectorAll<HTMLElement>('.studio-viewer__meta')) {
+        const rect = meta.getBoundingClientRect()
+        const center = rect.top + rect.height / 2
+        if (center < top || center > bottom) continue
+        const dist = Math.abs(center - focus)
+        const id = meta.closest<HTMLElement>('[data-piece]')?.dataset.piece ?? ''
+        if (id && dist < bestDist) {
+          best = id
+          bestDist = dist
+        }
+      }
+      setCurrentId((prev) => (prev === best ? prev : best))
+    }
+    const onScroll = () => {
+      if (frame) return
+      frame = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    const observer = new ResizeObserver(onScroll)
+    observer.observe(root)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      observer.disconnect()
+    }
+  }, [orderKey])
 
   return (
-    <div className="studio-viewer studio-viewer__mobile">
+    <div ref={rootRef} className="studio-viewer studio-viewer__mobile">
       {ordered.map((item, index) => (
         <MobilePiece
           key={item.id}
@@ -95,6 +139,7 @@ function MobileList({
           hideAvailable={hideAvailable}
           hoverChrome={hoverChrome}
           eager={index === 0}
+          current={item.id === currentId}
         />
       ))}
     </div>
@@ -107,12 +152,14 @@ function MobilePiece({
   hideAvailable,
   hoverChrome,
   eager,
+  current,
 }: {
   item: CanvasItem
   renderCaption?: (item: CanvasItem) => ReactNode
   hideAvailable: boolean
   hoverChrome: boolean
   eager: boolean
+  current: boolean
 }) {
   const title = hoverChrome ? item.label?.trim() ?? '' : ''
   const status = statusOf(item, hideAvailable)
@@ -124,7 +171,7 @@ function MobilePiece({
   )
 
   return (
-    <div className="studio-viewer__frame">
+    <div className={`studio-viewer__frame${current ? ' is-current' : ''}`} data-piece={item.id}>
       {item.href ? <Link to={item.href} className="studio-viewer__hit">{image}</Link> : image}
       {hoverChrome && (title || soldDot) ? (
         <span className="studio-viewer__meta">

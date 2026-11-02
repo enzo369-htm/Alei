@@ -319,7 +319,18 @@
   margin-top: 4.34px;
   margin-right: 6px;
   margin-left: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.studio-viewer__mobile .studio-viewer__frame.is-current .studio-viewer__meta {
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-viewer__mobile .studio-viewer__meta {
+    transition: none;
+  }
 }
 
 .studio-viewer__mobile .studio-viewer__status {

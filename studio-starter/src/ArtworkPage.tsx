@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { apiGetCanvas, type CanvasPiece, type PieceSlide } from './core/api/canvas'
 import type { MediaRecord } from './core/images/types'
@@ -8,6 +8,21 @@ import { site } from './site.config'
 import '@fontsource-variable/inter/wght-italic.css'
 
 const WORKS_TEST_EMAIL = 'prueba@alei.com'
+const NARROW = '(max-width: 800px)'
+
+function subscribeNarrow(onChange: () => void) {
+  const media = window.matchMedia(NARROW)
+  media.addEventListener('change', onChange)
+  window.addEventListener('resize', onChange)
+  return () => {
+    media.removeEventListener('change', onChange)
+    window.removeEventListener('resize', onChange)
+  }
+}
+
+function useNarrow() {
+  return useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false)
+}
 
 function mailHref(email: string, subjectLine: string, bodyLine: string) {
   const clean = email.trim()
@@ -59,6 +74,7 @@ function WorkImage({
   const alt = textOf(piece.title, piece.titleEn, lang)
   const slides = frameSlides(piece)
   const [index, setIndex] = useState(0)
+  const narrow = useNarrow()
   const frameRef = useRef<HTMLDivElement>(null)
   const onMeasureRef = useRef(onMeasure)
 
@@ -130,13 +146,14 @@ function WorkImage({
   }
 
   const current = slides[index]
+  const framed = narrow ? (slides.find((slide) => slide.media?.width && slide.media?.height) ?? current) : current
   const ratio =
-    current?.media?.width && current?.media?.height ? `${current.media.width} / ${current.media.height}` : undefined
+    framed?.media?.width && framed?.media?.height ? `${framed.media.width} / ${framed.media.height}` : undefined
 
   return (
     <>
       <div className="artwork__frame" ref={frameRef} style={ratio ? { aspectRatio: ratio } : undefined}>
-        <div className="artwork__track" style={{ transform: `translateX(-${index * 100}%)` }}>
+        <div className="artwork__track" style={narrow ? undefined : { transform: `translateX(-${index * 100}%)` }}>
           {slides.map((slide, slideIndex) => (
             <div key={slide.id} className="artwork__slide">
               {slide.media ? (
