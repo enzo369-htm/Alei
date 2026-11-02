@@ -61,6 +61,21 @@ test('PUT recorta título largo', () => {
   if (parsed.ok) assert.equal(parsed.blocks[0]!.title.length, 200)
 })
 
+test('PUT conserva un cuadro recortado por arriba del lienzo', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [{ mediaId: '00000000-0000-4000-8000-0000000000aa', x: 10, y: -40, width: 20 }],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  assert.equal(parsed.blocks[0]!.pieces[0]!.y, -40)
+})
+
 test('PUT guarda título, ficha y Sold de la pieza', () => {
   const parsed = parseCanvasPut(
     [

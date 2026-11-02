@@ -9,21 +9,6 @@ import '@fontsource-variable/inter/wght-italic.css'
 
 const WORKS_TEST_EMAIL = 'prueba@alei.com'
 
-function isDateLine(line: string) {
-  return /^(?:ene(?:ro)?|feb(?:ruary|rero)?|mar(?:zo)?|abr(?:il)?|may(?:o)?|jun(?:io)?|jul(?:io)?|ago(?:sto)?|sep(?:t(?:iembre)?)?|oct(?:ubre)?|nov(?:iembre)?|dic(?:iembre)?|jan(?:uary)?|apr(?:il)?|aug(?:ust)?|dec(?:ember)?|march|june|july|september|october|november)\s*\d{4}$/i.test(
-    line.trim(),
-  )
-}
-
-function sheetLabel(value: string) {
-  return value
-    .split('\n')
-    .map((line) => line.replace(/\s*\(\s*enmarcado\s*\)/gi, '').replace(/[ \t]{2,}/g, ' ').trimEnd())
-    .filter((line) => !isDateLine(line))
-    .join('\n')
-    .trim()
-}
-
 function mailHref(email: string, subjectLine: string, bodyLine: string) {
   const clean = email.trim()
   if (!clean) return ''
@@ -204,8 +189,8 @@ function letterInk(el: HTMLElement) {
 function WorksSheet({ piece }: { piece: CanvasPiece }) {
   const { lang, t } = useLocale()
   const title = textOf(piece.title, piece.titleEn, lang)
-  const sheet = sheetLabel(textOf(piece.ficha, piece.fichaEn, lang))
-  const text = textOf(piece.text, piece.textEn, lang).trim()
+  const sheet = textOf(piece.ficha, piece.fichaEn, lang)
+  const text = textOf(piece.text, piece.textEn, lang)
   const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
   const sold = piece.availability === 'sold'
   const interest = interestLines(title, t)

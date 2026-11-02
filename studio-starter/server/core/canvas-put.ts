@@ -95,7 +95,7 @@ export function parseCanvasPut(
         id: isUuid(pieceId) ? pieceId : undefined,
         mediaId,
         x: clampNum(piece.x, 0, 95, 8),
-        y: clampNum(piece.y, 0, 98, 8),
+        y: clampNum(piece.y, -500, 100, 8),
         width: clampNum(piece.width, 5, 90, 24),
         title: clip(asText(piece.title), TITLE_MAX),
         titleEn: clip(asText(piece.titleEn), TITLE_MAX),

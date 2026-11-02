@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { clamp, defaultPositionForIndex, readingOrder, withDefaultPositions } from './layout.ts'
+import { anchorYToBottom, clamp, defaultPositionForIndex, readingOrder, withDefaultPositions } from './layout.ts'
+
+test('anchorYToBottom recorta o agranda el alto solo desde arriba', () => {
+  const shrunk = anchorYToBottom(80, 1.2, 0.8)
+  assert.ok(Math.abs(shrunk - 70) < 1e-9)
+  assert.ok(Math.abs(anchorYToBottom(shrunk, 0.8, 1.2) - 80) < 1e-9)
+  assert.equal(anchorYToBottom(40, 1.2, 1.2), 40)
+})
 
 test('clamp recorta al rango', () => {
   assert.equal(clamp(3, 0, 2), 2)

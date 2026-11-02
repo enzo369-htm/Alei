@@ -110,10 +110,10 @@ body,
   position: absolute;
   z-index: 12;
   display: block;
+  width: auto;
   margin: 0;
-  color: #ffffff;
-  font-size: 18px;
-  line-height: 1;
+  background: transparent;
+  object-fit: contain;
   pointer-events: none;
   user-select: none;
 }
@@ -128,14 +128,8 @@ body,
   user-select: none;
 }
 
-.hero__flower--mark {
-  color: #ffffff;
-  font-size: 18px;
-}
-
 .hero__flower--img {
   width: auto;
-  height: 65px;
   background: transparent;
   object-fit: contain;
 }

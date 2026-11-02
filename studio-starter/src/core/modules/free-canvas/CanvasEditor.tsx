@@ -40,6 +40,8 @@ export type CanvasEditorProps = {
   onHeightRatioChange?: (ratio: number) => void
   selectedId?: string | null
   onSelect?: (id: string | null) => void
+  /** 'click' abre la ficha. 'drag' la cierra: el cuadro se está moviendo. */
+  onPieceGesture?: (gesture: 'click' | 'drag') => void
   showHeightControl?: boolean
   heightInputId?: string
 }
@@ -79,11 +81,13 @@ export function CanvasEditor({
   onHeightRatioChange,
   selectedId = null,
   onSelect,
+  onPieceGesture,
   showHeightControl = true,
   heightInputId = 'canvas-height',
 }: CanvasEditorProps) {
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const interaction = useRef<Interaction>(null)
+  const pieceGesture = useRef<{ x: number; y: number; dragged: boolean } | null>(null)
   const magnetOnRef = useRef(true)
   const [magnetOn, setMagnetOn] = useState(true)
   const [guides, setGuides] = useState<SnapGuides | null>(null)
@@ -117,6 +121,7 @@ export function CanvasEditor({
       axisChosen: false,
       others: [...rects.entries()].filter(([id]) => id !== item.id).map(([, rect]) => rect),
     }
+    pieceGesture.current = { x: e.clientX, y: e.clientY, dragged: false }
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   }
 
@@ -149,6 +154,15 @@ export function CanvasEditor({
 
     if (act.type === 'drag') {
       if (act.rectW < 1 || act.rectH < 1) return
+      const gesture = pieceGesture.current
+      if (gesture && !gesture.dragged) {
+        const movedX = e.clientX - gesture.x
+        const movedY = e.clientY - gesture.y
+        if (movedX * movedX + movedY * movedY > 16) {
+          gesture.dragged = true
+          onPieceGesture?.('drag')
+        }
+      }
       const dxPx = e.clientX - act.startPx
       const dyPx = e.clientY - act.startPy
       let x = act.originX + (dxPx / act.rectW) * 100
@@ -211,8 +225,11 @@ export function CanvasEditor({
   }
 
   function onPointerUp() {
+    const gesture = pieceGesture.current
     interaction.current = null
+    pieceGesture.current = null
     setGuides(null)
+    if (gesture && !gesture.dragged) onPieceGesture?.('click')
   }
 
   return (
@@ -226,11 +243,11 @@ export function CanvasEditor({
               type="range"
               min={0.6}
               max={2.5}
-              step={0.1}
+              step={0.01}
               value={heightRatio}
               onChange={(e) => onHeightRatioChange(Number.parseFloat(e.target.value))}
             />
-            <span>{heightRatio.toFixed(1)}×</span>
+            <span>{heightRatio.toFixed(2)}×</span>
           </div>
         )}
         <button

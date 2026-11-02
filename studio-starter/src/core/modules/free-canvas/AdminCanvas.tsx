@@ -11,7 +11,7 @@ import {
 } from '../../api/canvas.ts'
 import { apiUploadMedia } from '../../api/media.ts'
 import { prepareVariants } from '../../images/prepareVariants.ts'
-import { defaultPositionForIndex } from './layout.ts'
+import { anchorYToBottom, defaultPositionForIndex } from './layout.ts'
 import { FreeCanvas } from './FreeCanvas.tsx'
 import './canvas.css'
 
@@ -60,6 +60,7 @@ function remapSelected(
 export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const [blocks, setBlocks] = useState<CanvasBlock[]>([])
   const [selected, setSelected] = useState<{ canvasId: string; pieceId: string } | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [status, setStatus] = useState('Listo')
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -70,6 +71,8 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const [english, setEnglish] = useState(false)
   const fileForCanvas = useRef<string | null>(null)
   const editGen = useRef(0)
+  const headRef = useRef<HTMLDivElement>(null)
+  const pageRef = useRef<HTMLElement>(null)
 
   const textCount = blocks.filter((block) => block.kind === 'text').length
   const canvasCount = blocks.filter((block) => block.kind === 'canvas').length
@@ -104,6 +107,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     setBlocks(data.blocks)
     setDirty(false)
     setSelected(null)
+    setSheetOpen(false)
   }, [scope])
 
   useEffect(() => {
@@ -113,6 +117,17 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
       })
       .finally(() => setLoaded(true))
   }, [refresh])
+
+  useEffect(() => {
+    const head = headRef.current
+    const page = pageRef.current
+    if (!head || !page) return
+    const apply = () => page.style.setProperty('--admin-head-height', `${head.offsetHeight}px`)
+    apply()
+    const observer = new ResizeObserver(apply)
+    observer.observe(head)
+    return () => observer.disconnect()
+  }, [])
 
   function markDirty(next: CanvasBlock[]) {
     editGen.current += 1
@@ -191,7 +206,10 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     try {
       await apiDeleteCanvasBlock(scope, canvasId)
       setBlocks((prev) => prev.filter((block) => block.id !== canvasId))
-      if (selected?.canvasId === canvasId) setSelected(null)
+      if (selected?.canvasId === canvasId) {
+        setSelected(null)
+        setSheetOpen(false)
+      }
       setStatus('Quitado')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo quitar')
@@ -209,6 +227,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
       ),
     )
     setSelected(null)
+    setSheetOpen(false)
     setStatus('Imagen quitada — guardá para confirmar')
   }
 
@@ -336,7 +355,10 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
         )
       })
       setDirty(true)
-      if (pieceId) setSelected({ canvasId, pieceId })
+      if (pieceId) {
+        setSelected({ canvasId, pieceId })
+        setSheetOpen(true)
+      }
       setStatus('Imagen agregada — acordate de guardar')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir')
@@ -348,8 +370,8 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   }
 
   return (
-    <main className="admin-page admin-page--wide admin-page--canvas">
-      <div className="admin-canvas-head">
+    <main className="admin-page admin-page--wide admin-page--canvas" ref={pageRef}>
+      <div className="admin-canvas-head" ref={headRef}>
         <h1 className="admin-page__title">{heading}</h1>
         <div className="admin-actions">
           <span className="admin-page__copy">{status}</span>
@@ -393,7 +415,8 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
         </div>
       </div>
 
-      {selectedPiece && (
+      {selectedPiece && sheetOpen && (
+        <div className="admin-piece-sheet-slot">
         <div className={english ? 'admin-piece-sheet admin-piece-sheet--english' : 'admin-piece-sheet'}>
           <label className="admin-login__label admin-piece-sheet__title" htmlFor="piece-title">
             Título
@@ -547,6 +570,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
             </div>
           )}
         </div>
+        </div>
       )}
 
       {error && <p className="admin-login__error">{error}</p>}
@@ -686,9 +710,11 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               heightRatio={block.heightRatio}
               heightInputId={`canvas-height-${block.id}`}
               selectedId={selected?.canvasId === block.id ? selected.pieceId : null}
-              onSelect={(pieceId) =>
+              onSelect={(pieceId) => {
                 setSelected(pieceId ? { canvasId: block.id, pieceId } : null)
-              }
+                setSheetOpen(false)
+              }}
+              onPieceGesture={(gesture) => setSheetOpen(gesture === 'click')}
               onChange={(pieces) =>
                 markDirty(
                   blocks.map((item) => (item.id === block.id ? { ...item, pieces } : item)),
@@ -697,7 +723,16 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               onHeightRatioChange={(heightRatio) =>
                 markDirty(
                   blocks.map((item) =>
-                    item.id === block.id ? { ...item, heightRatio } : item,
+                    item.id === block.id
+                      ? {
+                          ...item,
+                          heightRatio,
+                          pieces: item.pieces.map((piece) => ({
+                            ...piece,
+                            y: anchorYToBottom(piece.y, item.heightRatio, heightRatio),
+                          })),
+                        }
+                      : item,
                   ),
                 )
               }

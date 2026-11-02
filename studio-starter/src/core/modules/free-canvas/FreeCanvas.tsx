@@ -10,6 +10,7 @@ type Props = {
   onHeightRatioChange: (ratio: number) => void
   selectedId?: string | null
   onSelect?: (id: string | null) => void
+  onPieceGesture?: (gesture: 'click' | 'drag') => void
   heightInputId?: string
 }
 
@@ -56,6 +57,7 @@ export function FreeCanvas({
   onHeightRatioChange,
   selectedId = null,
   onSelect,
+  onPieceGesture,
   heightInputId,
 }: Props) {
   const items = useMemo(() => toItems(pieces), [pieces])
@@ -66,6 +68,7 @@ export function FreeCanvas({
       heightRatio={heightRatio}
       selectedId={selectedId}
       onSelect={onSelect}
+      onPieceGesture={onPieceGesture}
       heightInputId={heightInputId}
       onHeightRatioChange={onHeightRatioChange}
       onChange={(next) => onChange(toPieces(next, pieces))}

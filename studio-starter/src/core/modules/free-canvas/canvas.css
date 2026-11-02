@@ -168,6 +168,8 @@
   display: block;
   width: 100%;
   overflow: visible;
+  /* Recorta solo por arriba. Los títulos, debajo de la imagen, siguen viéndose. */
+  clip-path: inset(0 -100vw -100vh -100vw);
 }
 
 .studio-viewer__item {

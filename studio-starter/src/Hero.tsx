@@ -1,65 +1,60 @@
 import { useEffect, useRef, useState } from 'react'
 
-/** ✿ es la rellena y ❀ la de línea. Varias secuencias, una detrás de otra. */
-const FLOWERS = ['✿', '❀']
-const STYLE_SEQUENCES = [
-  [0, 1, 1, 1, 0, 0, 1],
-  [0, 0, 0, 1, 1, 1, 0, 1, 1],
-  [0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0],
-  [1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1],
-  [0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
-  [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-] as const
+/** Del 1 al 9. Cada archivo ya trae el tamaño del dibujo. */
+const FLOWERS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/flowers/${n}.png`)
 
-/**
- * Cada flor nueva gira esto respecto de la anterior.
- * 15° no cae en los ejes de ✿/❀ (se repiten cada 45° o 60°), así que no se ven iguales.
- */
+/** Cada flor nueva gira esto respecto de la anterior. */
 const FLOWER_TURN = 15
 
-/** Del más grande al más chico, en px. */
-const FLOWER_PX = [16.5, 14.5, 12, 10.5] as const
+/** El dibujo mediano, sea cual sea el margen del PNG, se ve de este alto. */
+const FLOWER_INK_PX = 14.5
 
-/**
- * Ocho órdenes. Cada una repite un tamaño y no va de grande a chico.
- * Al terminar una, sigue la siguiente; después de la octava vuelve a empezar.
- */
-const SIZE_SEQUENCES = [
-  [1, 0, 3, 2, 1],
-  [0, 3, 1, 2, 0],
-  [2, 0, 3, 1, 2],
-  [3, 1, 0, 2, 3],
-  [1, 3, 0, 2, 1],
-  [0, 2, 3, 1, 0],
-  [2, 1, 0, 3, 2],
-  [3, 0, 2, 1, 3],
-] as const
-
-/** 18 px del emoji equivalen a la imagen de 65 px. */
-const FLOWER_MARK = 18
-const FLOWER_IMAGE = 65
+/** Hasta medir los archivos: el lote actual, 104 px de tinta en un lienzo de 1530. */
+const FLOWER_HEIGHT_FALLBACK = (FLOWER_INK_PX * 1530) / 104
 
 /** Cuánto más grande que la pantalla se ve el cuadro. 1 = entero, 1.8 = zoom. */
 const ZOOM = 1.8
 
-function isImage(src: string) {
-  return src.startsWith('/') || src.startsWith('http')
+function flowerSrc(step: number) {
+  return FLOWERS[step % FLOWERS.length] ?? FLOWERS[0]
 }
 
-function flowerPx(step: number) {
-  const length = SIZE_SEQUENCES[0].length
-  const sequence = SIZE_SEQUENCES[Math.floor(step / length) % SIZE_SEQUENCES.length]
-  return FLOWER_PX[sequence[step % length] ?? 1]
+function flowerBoxHeight(inkRatios: number[]) {
+  const sorted = inkRatios.filter((ratio) => ratio > 0).sort((a, b) => a - b)
+  const median = sorted[Math.floor((sorted.length - 1) / 2)]
+  return median ? FLOWER_INK_PX / median : FLOWER_HEIGHT_FALLBACK
 }
 
-function flowerMark(step: number) {
-  const total = STYLE_SEQUENCES.reduce((sum, sequence) => sum + sequence.length, 0)
-  let index = step % total
-  for (const sequence of STYLE_SEQUENCES) {
-    if (index < sequence.length) return FLOWERS[sequence[index] ?? 0] ?? FLOWERS[0]
-    index -= sequence.length
+function inkRatio(image: HTMLImageElement) {
+  const width = Math.max(1, Math.round(image.naturalWidth / 4))
+  const height = Math.max(1, Math.round(image.naturalHeight / 4))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+  if (!context) return 0
+  context.drawImage(image, 0, 0, width, height)
+  const data = context.getImageData(0, 0, width, height).data
+  let minY = height
+  let maxY = 0
+  for (let index = 3; index < data.length; index += 4) {
+    const alpha = data[index] ?? 0
+    if (alpha <= 16) continue
+    const y = Math.floor(index / 4 / width)
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
   }
-  return FLOWERS[0]
+  if (maxY < minY) return 0
+  return (maxY - minY + 1) / height
+}
+
+function loadInkRatio(src: string) {
+  return new Promise<number>((resolve) => {
+    const image = new Image()
+    image.onload = () => resolve(inkRatio(image))
+    image.onerror = () => resolve(0)
+    image.src = src
+  })
 }
 
 type Point = {
@@ -74,33 +69,27 @@ type Size = {
 
 type Flower = {
   id: number
-  mark: string
+  src: string
   turn: number
-  px: number
   /** Posición sobre el cuadro, de 0 a 1, no sobre la pantalla. */
   u: number
   v: number
 }
 
-function flowerBox(px: number, image: boolean): React.CSSProperties {
-  if (image) return { height: (FLOWER_IMAGE * px) / FLOWER_MARK }
-  return { fontSize: px }
-}
-
-function cursorStyle(point: Point, rotation: number, px: number): React.CSSProperties {
+function cursorStyle(point: Point, rotation: number, height: number): React.CSSProperties {
   return {
     left: point.x,
     top: point.y,
-    fontSize: px,
+    height,
     transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
   }
 }
 
-function sealedStyle(flower: Flower): React.CSSProperties {
+function sealedStyle(flower: Flower, height: number): React.CSSProperties {
   return {
     left: `${flower.u * 100}%`,
     top: `${flower.v * 100}%`,
-    ...flowerBox(flower.px, isImage(flower.mark)),
+    height,
     transform: `translate(-50%, -50%) rotate(${flower.turn}deg)`,
   }
 }
@@ -130,15 +119,25 @@ export function Hero({ src }: { src: string }) {
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [cursor, setCursor] = useState<Point | null>(null)
   const [turn, setTurn] = useState(0)
-  const [sizeStep, setSizeStep] = useState(0)
+  const [step, setStep] = useState(0)
+  const [flowerHeight, setFlowerHeight] = useState(FLOWER_HEIGHT_FALLBACK)
   const [frame, setFrame] = useState<Size>({ w: 0, h: 0 })
   const [natural, setNatural] = useState<Size>({ w: 0, h: 0 })
   const [pan, setPan] = useState<Point>({ x: 0.5, y: 0.5 })
-  const current = flowerMark(sizeStep)
-  const px = flowerPx(sizeStep)
+  const current = flowerSrc(step)
   const size = paintedSize(frame, natural)
   const shiftX = size ? -pan.x * Math.max(0, size.w - frame.w) : 0
   const shiftY = size ? -pan.y * Math.max(0, size.h - frame.h) : 0
+
+  useEffect(() => {
+    let cancelled = false
+    void Promise.all(FLOWERS.map(loadInkRatio)).then((ratios) => {
+      if (!cancelled) setFlowerHeight(flowerBoxHeight(ratios))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const el = frameRef.current
@@ -171,22 +170,20 @@ export function Hero({ src }: { src: string }) {
     if (!size) return
     const point = pointFromEvent(event)
     const id = Date.now() + Math.random()
-    const mark = current
+    const stampSrc = current
     const stamp = turn
-    const stampedPx = px
     setFlowers((items) => [
       ...items,
       {
         id,
-        mark,
+        src: stampSrc,
         turn: stamp,
-        px: stampedPx,
         u: (point.x - shiftX) / size.w,
         v: (point.y - shiftY) / size.h,
       },
     ])
     setTurn((value) => value + FLOWER_TURN)
-    setSizeStep((value) => value + 1)
+    setStep((value) => value + 1)
 
     window.setTimeout(() => {
       setFlowers((items) => items.filter((item) => item.id !== id))
@@ -218,33 +215,27 @@ export function Hero({ src }: { src: string }) {
           decoding="sync"
           onLoad={(event) => rememberSize(event.currentTarget, setNatural)}
         />
-        {flowers.map((flower) =>
-          isImage(flower.mark) ? (
-            <img
-              key={flower.id}
-              src={flower.mark}
-              alt=""
-              aria-hidden
-              className="hero__flower hero__flower--img"
-              draggable={false}
-              style={sealedStyle(flower)}
-            />
-          ) : (
-            <span
-              key={flower.id}
-              aria-hidden
-              className="hero__flower hero__flower--mark"
-              style={sealedStyle(flower)}
-            >
-              {flower.mark}
-            </span>
-          ),
-        )}
+        {flowers.map((flower) => (
+          <img
+            key={flower.id}
+            src={flower.src}
+            alt=""
+            aria-hidden
+            className="hero__flower hero__flower--img"
+            draggable={false}
+            style={sealedStyle(flower, flowerHeight)}
+          />
+        ))}
       </div>
       {cursor ? (
-        <span aria-hidden className="hero__cursor" style={cursorStyle(cursor, turn, px)}>
-          {current}
-        </span>
+        <img
+          src={current}
+          alt=""
+          aria-hidden
+          className="hero__cursor"
+          draggable={false}
+          style={cursorStyle(cursor, turn, flowerHeight)}
+        />
       ) : null}
     </div>
   )

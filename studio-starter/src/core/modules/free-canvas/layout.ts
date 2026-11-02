@@ -4,6 +4,12 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
+/** Keeps the distance to the bottom edge when the canvas height changes. Space is added or removed at the top. */
+export function anchorYToBottom(y: number, fromRatio: number, toRatio: number) {
+  if (!(fromRatio > 0) || !(toRatio > 0)) return y
+  return 100 * (1 - (fromRatio / toRatio) * (1 - y / 100))
+}
+
 export function hasPosition(item: CanvasItemInput): boolean {
   return item.x != null && item.y != null && item.width != null
 }

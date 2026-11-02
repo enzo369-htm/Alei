@@ -211,7 +211,7 @@ body {
 
 .admin-nav__foot {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -250,15 +250,26 @@ body {
   justify-content: flex-end;
 }
 
-.admin-page--canvas .admin-piece-sheet {
+.admin-page--canvas .admin-piece-sheet-slot {
   position: sticky;
-  top: 0;
   z-index: 40;
+  top: var(--admin-head-height, 72px);
+  height: 0;
+  margin: 0 -28px;
+}
+
+.admin-page--canvas .admin-piece-sheet {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
   max-width: none;
-  margin: 0 -28px 18px;
+  max-height: calc(70dvh - var(--admin-head-height, 72px));
+  margin: 0;
   padding: 10px 28px 12px;
+  overflow: auto;
   background: var(--admin-bg, #fff);
-  box-shadow: 0 1px 0 var(--admin-line, #e4e0d8);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .admin-piece-sheet .admin-login__input,
@@ -292,9 +303,20 @@ body {
 }
 
 .admin-page--canvas {
+  --admin-head-height: 72px;
   max-width: none;
   width: 100%;
-  padding: 28px 28px 72px;
+  padding: 0 28px 72px;
+}
+
+.admin-page--canvas .admin-canvas-head {
+  position: sticky;
+  z-index: 50;
+  top: 0;
+  margin: 0 -28px 12px;
+  padding: 16px 28px 12px;
+  background: var(--admin-bg);
+  border-bottom: 1px solid var(--admin-line);
 }
 
 .admin-upload {
@@ -587,11 +609,6 @@ body {
 
   .admin-app__main {
     overflow: visible;
-  }
-
-  .admin-page--canvas .admin-piece-sheet {
-    margin-left: -28px;
-    margin-right: -28px;
   }
 
   .admin-nav {
