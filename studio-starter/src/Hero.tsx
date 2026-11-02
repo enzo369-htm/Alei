@@ -3,9 +3,6 @@ import { useEffect, useRef, useState } from 'react'
 /** Del 1 al 9. Cada archivo ya trae el tamaño del dibujo. */
 const FLOWERS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/flowers/${n}.png`)
 
-/** Cada flor nueva gira esto respecto de la anterior. */
-const FLOWER_TURN = 15
-
 /** El dibujo mediano, sea cual sea el margen del PNG, se ve de este alto. */
 const FLOWER_INK_PX = 14.5
 
@@ -70,18 +67,17 @@ type Size = {
 type Flower = {
   id: number
   src: string
-  turn: number
   /** Posición sobre el cuadro, de 0 a 1, no sobre la pantalla. */
   u: number
   v: number
 }
 
-function cursorStyle(point: Point, rotation: number, height: number): React.CSSProperties {
+function cursorStyle(point: Point, height: number): React.CSSProperties {
   return {
     left: point.x,
     top: point.y,
     height,
-    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+    transform: 'translate(-50%, -50%)',
   }
 }
 
@@ -90,7 +86,7 @@ function sealedStyle(flower: Flower, height: number): React.CSSProperties {
     left: `${flower.u * 100}%`,
     top: `${flower.v * 100}%`,
     height,
-    transform: `translate(-50%, -50%) rotate(${flower.turn}deg)`,
+    transform: 'translate(-50%, -50%)',
   }
 }
 
@@ -118,7 +114,6 @@ export function Hero({ src }: { src: string }) {
   const paintingRef = useRef<HTMLImageElement>(null)
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [cursor, setCursor] = useState<Point | null>(null)
-  const [turn, setTurn] = useState(0)
   const [step, setStep] = useState(0)
   const [flowerHeight, setFlowerHeight] = useState(FLOWER_HEIGHT_FALLBACK)
   const [frame, setFrame] = useState<Size>({ w: 0, h: 0 })
@@ -171,18 +166,15 @@ export function Hero({ src }: { src: string }) {
     const point = pointFromEvent(event)
     const id = Date.now() + Math.random()
     const stampSrc = current
-    const stamp = turn
     setFlowers((items) => [
       ...items,
       {
         id,
         src: stampSrc,
-        turn: stamp,
         u: (point.x - shiftX) / size.w,
         v: (point.y - shiftY) / size.h,
       },
     ])
-    setTurn((value) => value + FLOWER_TURN)
     setStep((value) => value + 1)
 
     window.setTimeout(() => {
@@ -234,7 +226,7 @@ export function Hero({ src }: { src: string }) {
           aria-hidden
           className="hero__cursor"
           draggable={false}
-          style={cursorStyle(cursor, turn, flowerHeight)}
+          style={cursorStyle(cursor, flowerHeight)}
         />
       ) : null}
     </div>

@@ -618,10 +618,6 @@ body,
     scroll-snap-stop: always;
   }
 
-  .artwork--works .artwork__nav {
-    display: none;
-  }
-
   .artwork--works .artwork__nav,
   .artwork--works .artwork__arrow {
     font-size: 16px;

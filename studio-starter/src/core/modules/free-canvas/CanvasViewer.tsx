@@ -94,6 +94,11 @@ function MobileList({
     let frame = 0
     const update = () => {
       frame = 0
+      const scrolled = document.scrollingElement?.scrollTop ?? window.scrollY
+      if (scrolled < 8) {
+        setCurrentId((prev) => (prev === null ? prev : null))
+        return
+      }
       const focus = window.innerHeight * 0.62
       const top = window.innerHeight * 0.12
       const bottom = window.innerHeight * 0.9

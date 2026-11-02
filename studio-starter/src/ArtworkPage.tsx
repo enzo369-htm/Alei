@@ -76,6 +76,7 @@ function WorkImage({
   const [index, setIndex] = useState(0)
   const narrow = useNarrow()
   const frameRef = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
   const onMeasureRef = useRef(onMeasure)
 
   useEffect(() => {
@@ -84,6 +85,8 @@ function WorkImage({
 
   useEffect(() => {
     setIndex(0)
+    const track = trackRef.current
+    if (track) track.scrollLeft = 0
   }, [piece.id])
 
   useEffect(() => {
@@ -142,6 +145,17 @@ function WorkImage({
 
   function step(delta: number) {
     if (slides.length < 2) return
+    if (narrow) {
+      const track = trackRef.current
+      if (!track) return
+      const width = track.clientWidth
+      if (width < 1) return
+      const visible = Math.round(track.scrollLeft / width)
+      const next = (visible + delta + slides.length) % slides.length
+      track.scrollTo({ left: next * width, behavior: 'smooth' })
+      setIndex(next)
+      return
+    }
     setIndex((current) => (current + delta + slides.length) % slides.length)
   }
 
@@ -153,7 +167,11 @@ function WorkImage({
   return (
     <>
       <div className="artwork__frame" ref={frameRef} style={ratio ? { aspectRatio: ratio } : undefined}>
-        <div className="artwork__track" style={narrow ? undefined : { transform: `translateX(-${index * 100}%)` }}>
+        <div
+          className="artwork__track"
+          ref={trackRef}
+          style={narrow ? undefined : { transform: `translateX(-${index * 100}%)` }}
+        >
           {slides.map((slide, slideIndex) => (
             <div key={slide.id} className="artwork__slide">
               {slide.media ? (
