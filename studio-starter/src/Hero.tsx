@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 /** Del 1 al 9. Cada archivo ya trae el tamaño del dibujo. */
 const FLOWERS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/flowers/${n}.png`)
 
-/** El dibujo mediano, sea cual sea el margen del PNG, se ve de este alto. */
-const FLOWER_INK_PX = 14.5
+/** Cada dibujo, sea cual sea el margen del PNG, se ve de este alto. */
+const FLOWER_INK_PX = 16.5
 
 /** Hasta medir los archivos: el lote actual, 104 px de tinta en un lienzo de 1530. */
 const FLOWER_HEIGHT_FALLBACK = (FLOWER_INK_PX * 1530) / 104
@@ -16,10 +16,8 @@ function flowerSrc(step: number) {
   return FLOWERS[step % FLOWERS.length] ?? FLOWERS[0]
 }
 
-function flowerBoxHeight(inkRatios: number[]) {
-  const sorted = inkRatios.filter((ratio) => ratio > 0).sort((a, b) => a - b)
-  const median = sorted[Math.floor((sorted.length - 1) / 2)]
-  return median ? FLOWER_INK_PX / median : FLOWER_HEIGHT_FALLBACK
+function flowerBoxHeight(inkRatio: number) {
+  return inkRatio > 0 ? FLOWER_INK_PX / inkRatio : FLOWER_HEIGHT_FALLBACK
 }
 
 function inkRatio(image: HTMLImageElement) {
@@ -115,7 +113,7 @@ export function Hero({ src }: { src: string }) {
   const [flowers, setFlowers] = useState<Flower[]>([])
   const [cursor, setCursor] = useState<Point | null>(null)
   const [step, setStep] = useState(0)
-  const [flowerHeight, setFlowerHeight] = useState(FLOWER_HEIGHT_FALLBACK)
+  const [flowerHeights, setFlowerHeights] = useState<Record<string, number>>({})
   const [frame, setFrame] = useState<Size>({ w: 0, h: 0 })
   const [natural, setNatural] = useState<Size>({ w: 0, h: 0 })
   const [pan, setPan] = useState<Point>({ x: 0.5, y: 0.5 })
@@ -126,8 +124,10 @@ export function Hero({ src }: { src: string }) {
 
   useEffect(() => {
     let cancelled = false
-    void Promise.all(FLOWERS.map(loadInkRatio)).then((ratios) => {
-      if (!cancelled) setFlowerHeight(flowerBoxHeight(ratios))
+    void Promise.all(
+      FLOWERS.map(async (src) => [src, flowerBoxHeight(await loadInkRatio(src))] as const),
+    ).then((pairs) => {
+      if (!cancelled) setFlowerHeights(Object.fromEntries(pairs))
     })
     return () => {
       cancelled = true
@@ -215,7 +215,7 @@ export function Hero({ src }: { src: string }) {
             aria-hidden
             className="hero__flower hero__flower--img"
             draggable={false}
-            style={sealedStyle(flower, flowerHeight)}
+            style={sealedStyle(flower, flowerHeights[flower.src] ?? FLOWER_HEIGHT_FALLBACK)}
           />
         ))}
       </div>
@@ -226,7 +226,7 @@ export function Hero({ src }: { src: string }) {
           aria-hidden
           className="hero__cursor"
           draggable={false}
-          style={cursorStyle(cursor, flowerHeight)}
+          style={cursorStyle(cursor, flowerHeights[current] ?? FLOWER_HEIGHT_FALLBACK)}
         />
       ) : null}
     </div>

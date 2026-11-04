@@ -32,11 +32,11 @@ body,
   z-index: 40;
   display: flex;
   flex-shrink: 0;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   height: var(--site-nav-height);
-  padding: 0 var(--site-gutter) 6px calc(var(--site-gutter) - 5px);
+  padding: 0 20px;
   box-sizing: border-box;
   background: #ffffff;
   color: #000000;
@@ -373,11 +373,6 @@ body,
   --site-gutter: 20px;
 }
 
-.site--piece .site-nav {
-  align-items: center;
-  padding: 0 20px;
-}
-
 .artwork.artwork--works {
   --image-left: 20px;
   --text-edge: 20px;
@@ -526,7 +521,7 @@ body,
 }
 
 .artwork--works .artwork__sheet {
-  margin-top: 0;
+  margin-top: 4px;
   margin-bottom: 0;
   font-size: 12px;
   font-style: italic;
@@ -572,7 +567,7 @@ body,
 
 .artwork--works .artwork__mail {
   color: #000000;
-  font-size: var(--piece-text);
+  font-size: 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -752,7 +747,7 @@ body,
   color: #000000;
   font-size: 12px;
   font-weight: 400;
-  font-style: italic;
+  font-style: normal;
   letter-spacing: 0;
   line-height: 1.4;
 }
@@ -784,7 +779,7 @@ body,
   color: #000000;
   font-size: calc(20px * 0.97 * 0.98 * 0.97 * 0.95 * 0.96);
   font-weight: 400;
-  font-style: italic;
+  font-style: normal;
   letter-spacing: 0;
   line-height: 1;
 }
