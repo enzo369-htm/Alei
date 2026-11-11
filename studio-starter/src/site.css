@@ -765,6 +765,14 @@ body,
   margin-top: 0;
 }
 
+.about-page__block:nth-child(2) {
+  margin-top: 96px;
+}
+
+.about-page__block:nth-child(3) {
+  margin-top: 32px;
+}
+
 .about-page__ink {
   display: block;
   white-space: pre-wrap;
