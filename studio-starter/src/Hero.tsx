@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 /** Todas se igualan al mismo alto de dibujo, sea cual sea el margen del PNG. */
 const FLOWERS = [
@@ -16,6 +16,23 @@ const FLOWER_HEIGHT_FALLBACK = (FLOWER_INK_PX * 1530) / 104
 
 /** Cuánto más grande que la pantalla se ve el cuadro. 1 = entero, 1.8 = zoom. */
 const ZOOM = 1.8
+const NARROW = '(max-width: 800px)'
+
+function useNarrow() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const media = window.matchMedia(NARROW)
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia(NARROW).matches,
+    () => false,
+  )
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
 
 function flowerSrc(step: number) {
   return FLOWERS[step % FLOWERS.length] ?? FLOWERS[0]
@@ -124,10 +141,20 @@ export function Hero({ src }: { src: string }) {
   const [frame, setFrame] = useState<Size>({ w: 0, h: 0 })
   const [natural, setNatural] = useState<Size>({ w: 0, h: 0 })
   const [pan, setPan] = useState<Point>({ x: 0.5, y: 0.5 })
+  const narrow = useNarrow()
+  const dragRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    originX: number
+    originY: number
+  } | null>(null)
   const current = flowerSrc(step)
   const size = paintedSize(frame, natural)
-  const shiftX = size ? -pan.x * Math.max(0, size.w - frame.w) : 0
-  const shiftY = size ? -pan.y * Math.max(0, size.h - frame.h) : 0
+  const overflowX = size ? Math.max(0, size.w - frame.w) : 0
+  const overflowY = size ? Math.max(0, size.h - frame.h) : 0
+  const shiftX = size ? -pan.x * overflowX : 0
+  const shiftY = size ? -pan.y * overflowY : 0
 
   useEffect(() => {
     let cancelled = false
@@ -150,6 +177,10 @@ export function Hero({ src }: { src: string }) {
   }, [])
 
   useEffect(() => {
+    if (narrow) setCursor(null)
+  }, [narrow])
+
+  useEffect(() => {
     setPan({ x: 0.5, y: 0.5 })
     const img = paintingRef.current
     if (img?.complete) rememberSize(img, setNatural)
@@ -164,6 +195,41 @@ export function Hero({ src }: { src: string }) {
       x: rect.width ? point.x / rect.width : 0.5,
       y: rect.height ? point.y / rect.height : 0.5,
     })
+  }
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (!narrow || !size) return
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: shiftX,
+      originY: shiftY,
+    }
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // Untrusted events cannot capture the pointer.
+    }
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current
+    if (!narrow || !drag || drag.pointerId !== event.pointerId) return
+    const nextX = clamp(drag.originX + (event.clientX - drag.startX), -overflowX, 0)
+    const nextY = clamp(drag.originY + (event.clientY - drag.startY), -overflowY, 0)
+    setPan({
+      x: overflowX ? -nextX / overflowX : 0.5,
+      y: overflowY ? -nextY / overflowY : 0.5,
+    })
+  }
+
+  function handlePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return
+    dragRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
   }
 
   function handleClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -191,9 +257,13 @@ export function Hero({ src }: { src: string }) {
     <div
       ref={frameRef}
       className="hero"
-      onClick={handleClick}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setCursor(null)}
+      onClick={narrow ? undefined : handleClick}
+      onMouseMove={narrow ? undefined : handleMouseMove}
+      onMouseLeave={narrow ? undefined : () => setCursor(null)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
     >
       <div
         className="hero__stage"
@@ -212,7 +282,7 @@ export function Hero({ src }: { src: string }) {
           decoding="sync"
           onLoad={(event) => rememberSize(event.currentTarget, setNatural)}
         />
-        {flowers.map((flower) => (
+        {!narrow && flowers.map((flower) => (
           <img
             key={flower.id}
             src={flower.src}
@@ -224,7 +294,7 @@ export function Hero({ src }: { src: string }) {
           />
         ))}
       </div>
-      {cursor ? (
+      {!narrow && cursor ? (
         <img
           src={current}
           alt=""

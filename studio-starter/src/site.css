@@ -243,6 +243,16 @@ body,
     --site-gutter: 20px;
   }
 
+  .hero {
+    cursor: grab;
+    touch-action: none;
+    -webkit-touch-callout: none;
+  }
+
+  .hero__painting {
+    cursor: grab;
+  }
+
   .site-nav {
     padding-left: var(--site-gutter);
   }
