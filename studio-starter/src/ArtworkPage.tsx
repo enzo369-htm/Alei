@@ -48,14 +48,9 @@ type FrameSlide = {
 }
 
 function frameSlides(piece: CanvasPiece): FrameSlide[] {
-  const main: FrameSlide[] =
-    piece.media?.url || piece.src
-      ? [{ id: `main-${piece.id}`, media: piece.media, src: piece.src }]
-      : []
-  const extra = (piece.slides ?? [])
+  return (piece.slides ?? [])
     .filter((slide): slide is PieceSlide => Boolean(slide.media?.url || slide.src))
     .map((slide) => ({ id: slide.id, media: slide.media, src: slide.src }))
-  return [...extra, ...main]
 }
 
 type ImageMeasure = {
@@ -88,6 +83,11 @@ function WorkImage({
     const track = trackRef.current
     if (track) track.scrollLeft = 0
   }, [piece.id])
+
+  useEffect(() => {
+    if (slides.length > 0) return
+    onMeasureRef.current(null)
+  }, [piece.id, slides.length])
 
   useEffect(() => {
     const frame = frameRef.current
@@ -158,6 +158,8 @@ function WorkImage({
     }
     setIndex((current) => (current + delta + slides.length) % slides.length)
   }
+
+  if (slides.length === 0) return null
 
   const current = slides[index]
   const framed = narrow ? (slides.find((slide) => slide.media?.width && slide.media?.height) ?? current) : current
