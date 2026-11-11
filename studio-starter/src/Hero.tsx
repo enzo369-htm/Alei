@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 
-/** Del 1 al 9. Cada archivo ya trae el tamaño del dibujo. */
-const FLOWERS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/flowers/${n}.png`)
+/** Todas se igualan al mismo alto de dibujo, sea cual sea el margen del PNG. */
+const FLOWERS = [
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `/flowers/${n}.png`),
+  '/flowers/2.1.png',
+  '/flowers/2.2.png',
+  '/flowers/2.3.png',
+]
 
 /** Cada dibujo, sea cual sea el margen del PNG, se ve de este alto. */
-const FLOWER_INK_PX = 16.5
+const FLOWER_INK_PX = 14.5
 
 /** Hasta medir los archivos: el lote actual, 104 px de tinta en un lienzo de 1530. */
 const FLOWER_HEIGHT_FALLBACK = (FLOWER_INK_PX * 1530) / 104
@@ -43,11 +48,13 @@ function inkRatio(image: HTMLImageElement) {
   return (maxY - minY + 1) / height
 }
 
-function loadInkRatio(src: string) {
+function loadFlowerHeight(src: string) {
   return new Promise<number>((resolve) => {
     const image = new Image()
-    image.onload = () => resolve(inkRatio(image))
-    image.onerror = () => resolve(0)
+    image.onload = () => {
+      resolve(flowerBoxHeight(inkRatio(image)))
+    }
+    image.onerror = () => resolve(FLOWER_HEIGHT_FALLBACK)
     image.src = src
   })
 }
@@ -124,9 +131,7 @@ export function Hero({ src }: { src: string }) {
 
   useEffect(() => {
     let cancelled = false
-    void Promise.all(
-      FLOWERS.map(async (src) => [src, flowerBoxHeight(await loadInkRatio(src))] as const),
-    ).then((pairs) => {
+    void Promise.all(FLOWERS.map(async (src) => [src, await loadFlowerHeight(src)] as const)).then((pairs) => {
       if (!cancelled) setFlowerHeights(Object.fromEntries(pairs))
     })
     return () => {
