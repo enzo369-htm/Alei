@@ -10,7 +10,7 @@ export type AdminLink = {
 
 export const site = {
   name: 'ALEI',
-  contactEmail: '',
+  contactEmail: 'aleidraws@gmail.com',
 
   adminLinks: [
     { to: '/admin/hero', label: 'Hero' },

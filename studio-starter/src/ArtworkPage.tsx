@@ -7,7 +7,6 @@ import { textOf, useLocale, type CopyKey } from './locale'
 import { site } from './site.config'
 import '@fontsource-variable/inter/wght-italic.css'
 
-const WORKS_TEST_EMAIL = 'prueba@alei.com'
 const NARROW = '(max-width: 800px)'
 
 function subscribeNarrow(onChange: () => void) {
@@ -228,7 +227,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
   const title = textOf(piece.title, piece.titleEn, lang)
   const sheet = textOf(piece.ficha, piece.fichaEn, lang)
   const text = textOf(piece.text, piece.textEn, lang)
-  const email = site.contactEmail.trim() || WORKS_TEST_EMAIL
+  const email = site.contactEmail.trim()
   const sold = piece.availability === 'sold'
   const interest = interestLines(title, t)
   const [measure, setMeasure] = useState<ImageMeasure | null>(null)
