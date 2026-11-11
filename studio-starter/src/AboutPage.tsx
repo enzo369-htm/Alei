@@ -154,7 +154,12 @@ function AboutSheet({ page }: { page: PageRecord }) {
       {email || instagramUrl ? (
         <div className="about-page__contact">
           {email ? (
-            <a className="about-page__mail" href={`mailto:${email}`}>
+            <a
+              className="about-page__mail"
+              href={`https://mail.google.com/mail/?${new URLSearchParams({ view: 'cm', fs: '1', to: email }).toString()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {email}
             </a>
           ) : null}

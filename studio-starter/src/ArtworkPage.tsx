@@ -26,9 +26,8 @@ function useNarrow() {
 function mailHref(email: string, subjectLine: string, bodyLine: string) {
   const clean = email.trim()
   if (!clean) return ''
-  const subject = encodeURIComponent(subjectLine)
-  const body = encodeURIComponent(bodyLine)
-  return `mailto:${clean}?subject=${subject}&body=${body}`
+  const params = new URLSearchParams({ view: 'cm', fs: '1', to: clean, su: subjectLine, body: bodyLine })
+  return `https://mail.google.com/mail/?${params.toString()}`
 }
 
 function interestLines(title: string, t: (key: CopyKey) => string) {
@@ -286,7 +285,7 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
           {sold ? (
             <span className="artwork__status">{t('sold')}</span>
           ) : (
-            <a className="artwork__mail" href={mailHref(email, interest.subject, interest.body)}>
+            <a className="artwork__mail" href={mailHref(email, interest.subject, interest.body)} target="_blank" rel="noopener noreferrer">
               {email}
             </a>
           )}
@@ -360,7 +359,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
         {text.trim() ? <p className="artwork__ficha">{text}</p> : null}
         <p className="artwork__status">{status}</p>
         {mail ? (
-          <a className="artwork__mail" href={mail}>
+          <a className="artwork__mail" href={mail} target="_blank" rel="noopener noreferrer">
             {site.contactEmail}
           </a>
         ) : null}
