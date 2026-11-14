@@ -172,6 +172,8 @@ export function Hero({ src }: { src: string }) {
     const nextX = clamp(x, -maxX, 0)
     const nextY = clamp(y, -maxY, 0)
     shiftRef.current = { x: nextX, y: nextY, ready: true }
+    const stage = paintingRef.current?.parentElement
+    if (stage) stage.style.transform = `translate(${nextX}px, ${nextY}px)`
     setPan({
       x: maxX ? -nextX / maxX : 0.5,
       y: maxY ? -nextY / maxY : 0.5,
@@ -201,8 +203,8 @@ export function Hero({ src }: { src: string }) {
     const dt = last.t - earlier.t
     if (dt < 8) return { x: 0, y: 0 }
     return {
-      x: clamp((last.x - earlier.x) / dt, -1.1, 1.1),
-      y: clamp((last.y - earlier.y) / dt, -1.1, 1.1),
+      x: clamp((last.x - earlier.x) / dt, -1.6, 1.6),
+      y: clamp((last.y - earlier.y) / dt, -1.6, 1.6),
     }
   }
 
@@ -210,19 +212,17 @@ export function Hero({ src }: { src: string }) {
     stopGlide()
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let last = performance.now()
-    let traveled = 0
     const step = (now: number) => {
-      const dt = Math.min(34, now - last)
+      const dt = Math.min(32, now - last)
       last = now
-      const decay = Math.exp(-dt / 150)
-      vx *= decay
-      vy *= decay
       const current = shiftRef.current
       const moved = placeShift(current.x + vx * dt, current.y + vy * dt)
       if (moved.hitX) vx = 0
       if (moved.hitY) vy = 0
-      traveled += Math.hypot(vx * dt, vy * dt)
-      if (Math.hypot(vx, vy) < 0.05 || traveled > 170) {
+      const decay = Math.exp(-dt / 380)
+      vx *= decay
+      vy *= decay
+      if (Math.hypot(vx, vy) < 0.018) {
         glideRef.current = 0
         return
       }
