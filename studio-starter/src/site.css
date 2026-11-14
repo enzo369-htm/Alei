@@ -261,12 +261,13 @@ body,
     position: relative;
     z-index: 1;
     display: flex;
-    align-items: center;
+    align-self: stretch;
+    align-items: flex-end;
     justify-content: flex-end;
     width: 44px;
-    height: 32px;
+    height: auto;
     margin: 0;
-    padding: 0;
+    padding: 0 0 3.9px;
     border: 0;
     background: transparent;
     color: inherit;
@@ -276,17 +277,16 @@ body,
   .site-nav__bars {
     position: relative;
     display: block;
-    width: 22.32px;
-    height: 22.32px;
+    width: 14px;
+    height: 9.5px;
     overflow: visible;
-    transform: translateY(-0.4px);
   }
 
   .site-nav__bars span {
     position: absolute;
     left: 0;
     width: 100%;
-    height: 2.4px;
+    height: 1.5px;
     background: currentColor;
   }
 
@@ -295,18 +295,18 @@ body,
   }
 
   .site-nav__bars span:nth-child(2) {
-    top: 9.96px;
+    top: 4px;
   }
 
   .site-nav__bars span:nth-child(3) {
-    top: 19.92px;
+    top: 8px;
   }
 
   .site-nav__toggle.is-open .site-nav__bars span:nth-child(1),
   .site-nav__toggle.is-open .site-nav__bars span:nth-child(3) {
-    left: 50%;
+    left: calc(100% - 4.75px);
     top: 50%;
-    width: 29.16px;
+    width: 11.94px;
     transform: translate(-50%, -50%);
   }
 
