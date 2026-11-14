@@ -27,6 +27,11 @@ export type ParsedPiece = {
   availability: PieceAvailability
   /** Undefined means the client did not send slides, so the stored ones stay. */
   slides?: ParsedSlide[]
+  /**
+   * Undefined means the client did not send a video, so the stored one stays.
+   * Null clears it. A uuid points at a media row de video.
+   */
+  videoMediaId?: string | null
 }
 
 function availabilityOf(value: unknown): PieceAvailability {
@@ -90,6 +95,8 @@ export function parseCanvasPut(
       if (!isUuid(mediaId)) return { ok: false, error: 'mediaId inválido' }
       const slides = slidesOf(piece.slides)
       if (!slides.ok) return slides
+      const video = videoOf(piece)
+      if (!video.ok) return video
       const pieceId = asText(piece.id)
       pieces.push({
         id: isUuid(pieceId) ? pieceId : undefined,
@@ -105,6 +112,7 @@ export function parseCanvasPut(
         textEn: clip(asText(piece.textEn), FICHA_MAX),
         availability: availabilityOf(piece.availability),
         ...(slides.slides ? { slides: slides.slides } : {}),
+        ...(video.videoMediaId !== undefined ? { videoMediaId: video.videoMediaId } : {}),
       })
     }
 
@@ -121,6 +129,19 @@ export function parseCanvasPut(
   }
 
   return { ok: true, blocks: parsed }
+}
+
+function videoOf(
+  piece: Record<string, unknown>,
+): { ok: true; videoMediaId: string | null | undefined } | { ok: false; error: string } {
+  if (!Object.prototype.hasOwnProperty.call(piece, 'videoMediaId')) {
+    return { ok: true, videoMediaId: undefined }
+  }
+  const value = piece.videoMediaId
+  if (value == null || value === '') return { ok: true, videoMediaId: null }
+  const id = asText(value)
+  if (!isUuid(id)) return { ok: false, error: 'videoMediaId inválido' }
+  return { ok: true, videoMediaId: id }
 }
 
 function slidesOf(
@@ -146,6 +167,7 @@ export function mediaIdsOf(blocks: ParsedBlock[]) {
         block.pieces.flatMap((piece) => [
           piece.mediaId,
           ...(piece.slides ?? []).map((slide) => slide.mediaId),
+          ...(piece.videoMediaId ? [piece.videoMediaId] : []),
         ]),
       ),
     ),

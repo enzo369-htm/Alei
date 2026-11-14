@@ -1,4 +1,5 @@
 import { readImageSize } from '../../../src/core/images/readImageSize.ts'
+import { VIDEO_MAX_BYTES, inspectClip } from '../../../src/core/video/inspectMp4.ts'
 import { isAuthed } from '../auth.ts'
 import { hasDatabase, sql } from '../db.ts'
 import { fail, isUuid, json, notFound, unauthorized } from '../http.ts'
@@ -167,6 +168,52 @@ export const mediaRoutes = [
     } catch {
       await Promise.allSettled(uploaded.map((key) => deleteFromR2(key)))
       return fail(500, 'No se pudo guardar la imagen')
+    }
+  }),
+
+  route('POST', '/api/media/video', async ({ request }) => {
+    if (!(await isAuthed(request))) return unauthorized()
+    if (!hasDatabase()) return fail(503, 'Falta DATABASE_URL')
+    if (!hasR2()) {
+      return fail(503, 'Faltan variables de R2 (incluye R2_PUBLIC_BASE_URL)')
+    }
+
+    const form = await request.formData().catch(() => null)
+    if (!form) return fail(400, 'Se espera multipart/form-data')
+    const file = form.get('file')
+    if (!(file instanceof File)) return fail(400, 'Falta el video')
+
+    const body = Buffer.from(await file.arrayBuffer())
+    if (body.length > VIDEO_MAX_BYTES) return fail(413, 'El video pesa más de 3,5 MB')
+    const inspected = inspectClip(body)
+    if (!inspected.ok) return fail(400, inspected.error)
+
+    const id = crypto.randomUUID()
+    const gif = inspected.format === 'gif'
+    const key = `media/${id}/${gif ? 'clip.gif' : 'video.mp4'}`
+    const mime = gif ? 'image/gif' : 'video/mp4'
+    const variants = { format: inspected.format, duration: inspected.info.duration }
+
+    try {
+      const url = await uploadToR2(key, body, mime)
+      const db = sql()
+      const rows = (await db`
+        insert into media (id, r2_key, url, width, height, mime, variants)
+        values (
+          ${id},
+          ${key},
+          ${url},
+          ${inspected.info.width},
+          ${inspected.info.height},
+          ${mime},
+          ${JSON.stringify(variants)}::jsonb
+        )
+        returning id, url, width, height, mime, variants, created_at
+      `) as MediaRow[]
+      return json(toRecord(rows[0]!))
+    } catch {
+      await deleteFromR2(key).catch(() => undefined)
+      return fail(500, 'No se pudo guardar el video')
     }
   }),
 

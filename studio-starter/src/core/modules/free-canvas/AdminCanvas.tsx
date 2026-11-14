@@ -9,8 +9,9 @@ import {
   type PieceAvailability,
   type PieceSlide,
 } from '../../api/canvas.ts'
-import { apiUploadMedia } from '../../api/media.ts'
+import { apiUploadMedia, apiUploadVideo } from '../../api/media.ts'
 import { prepareVariants } from '../../images/prepareVariants.ts'
+import { VIDEO_LIMITS_COPY, VIDEO_MAX_BYTES, inspectClip } from '../../video/inspectMp4.ts'
 import { anchorYToBottom, defaultPositionForIndex } from './layout.ts'
 import { FreeCanvas } from './FreeCanvas.tsx'
 import './canvas.css'
@@ -66,6 +67,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [slideUploading, setSlideUploading] = useState(false)
+  const [videoUploading, setVideoUploading] = useState(false)
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [english, setEnglish] = useState(false)
@@ -80,7 +82,19 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
 
   function patchSelected(
     patch: Partial<
-      Pick<CanvasPiece, 'title' | 'titleEn' | 'ficha' | 'fichaEn' | 'text' | 'textEn' | 'availability' | 'slides'>
+      Pick<
+        CanvasPiece,
+        | 'title'
+        | 'titleEn'
+        | 'ficha'
+        | 'fichaEn'
+        | 'text'
+        | 'textEn'
+        | 'availability'
+        | 'slides'
+        | 'video'
+        | 'videoMediaId'
+      >
     >,
   ) {
     if (!selected) return
@@ -159,7 +173,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
   }
 
   async function onSave() {
-    if (!loaded || !dirty || saving || slideUploading) return
+    if (!loaded || !dirty || saving || slideUploading || videoUploading) return
     const generation = editGen.current
     const snapshot = blocks
     setSaving(true)
@@ -302,6 +316,67 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
     }
   }
 
+  function updatePieceVideo(canvasId: string, pieceId: string, video: CanvasPiece['video']) {
+    editGen.current += 1
+    setBlocks((prev) =>
+      prev.map((block) =>
+        block.id !== canvasId
+          ? block
+          : {
+              ...block,
+              pieces: block.pieces.map((piece) =>
+                piece.id === pieceId ? { ...piece, video, videoMediaId: video?.id ?? null } : piece,
+              ),
+            },
+      ),
+    )
+    setDirty(true)
+  }
+
+  async function onAddVideo(file: File) {
+    if (!selected || !selectedPiece) return
+    const canvasId = selected.canvasId
+    const pieceId = selected.pieceId
+    setError('')
+    if (file.size > VIDEO_MAX_BYTES) {
+      setError('El video pesa más de 3,5 MB')
+      setStatus('')
+      return
+    }
+    setStatus('Revisando el video…')
+    let bytes: Uint8Array
+    try {
+      bytes = new Uint8Array(await file.arrayBuffer())
+    } catch {
+      setError('No se pudo leer el video')
+      setStatus('')
+      return
+    }
+    const inspected = inspectClip(bytes)
+    if (!inspected.ok) {
+      setError(inspected.error)
+      setStatus('')
+      return
+    }
+    setVideoUploading(true)
+    setStatus('Subiendo el video…')
+    try {
+      const media = await apiUploadVideo(file)
+      updatePieceVideo(canvasId, pieceId, media)
+      setStatus('Video agregado — acordate de guardar')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo subir el video')
+      setStatus('')
+    } finally {
+      setVideoUploading(false)
+    }
+  }
+
+  function removeVideo() {
+    patchSelected({ video: null, videoMediaId: null })
+    setStatus('Video quitado — acordate de guardar')
+  }
+
   function removeSlide(slideId: string) {
     if (!selectedPiece) return
     patchSelected({ slides: (selectedPiece.slides ?? []).filter((slide) => slide.id !== slideId) })
@@ -348,6 +423,8 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           textEn: '',
           availability: 'available',
           slides: [],
+          videoMediaId: null,
+          video: null,
         }
         pieceId = piece.id
         return prev.map((block) =>
@@ -407,7 +484,7 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
           <button
             type="button"
             className="admin-btn admin-btn--primary"
-            disabled={saving || slideUploading || !loaded || !dirty}
+            disabled={saving || slideUploading || videoUploading || !loaded || !dirty}
             onClick={() => void onSave()}
           >
             {saving ? 'Guardando…' : 'Guardar'}
@@ -504,6 +581,49 @@ export function AdminCanvas({ scope, heading = 'Canvas' }: Props) {
               </button>
             </div>
           </div>
+          {isGallery(scope) && (
+            <div className="admin-piece-video">
+              <p className="admin-login__label">Video</p>
+              <p className="admin-piece-video__where">
+                Se ve en la ficha, dentro del scroll de las fotos. No entra en el lienzo.
+              </p>
+              <p className="admin-piece-video__limits">{VIDEO_LIMITS_COPY}</p>
+              {selectedPiece.video ? (
+                selectedPiece.video.mime === 'image/gif' ? (
+                  <img className="admin-piece-video__preview" src={selectedPiece.video.url} alt="" />
+                ) : (
+                  <video
+                    className="admin-piece-video__preview"
+                    src={selectedPiece.video.url}
+                    muted
+                    playsInline
+                    controls
+                    preload="metadata"
+                  />
+                )
+              ) : null}
+              <div className="admin-piece-slides__actions">
+                <label className={`admin-btn admin-btn--primary admin-upload${videoUploading ? ' is-busy' : ''}`}>
+                  <input
+                    type="file"
+                    accept="video/mp4,.mp4,image/gif,.gif"
+                    disabled={videoUploading || slideUploading}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      event.target.value = ''
+                      if (file) void onAddVideo(file)
+                    }}
+                  />
+                  {videoUploading ? 'Subiendo…' : 'Añadir video'}
+                </label>
+                {selectedPiece.video ? (
+                  <button type="button" className="admin-btn admin-btn--danger" onClick={removeVideo}>
+                    Quitar video
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          )}
           {isGallery(scope) && (
             <div className="admin-piece-slides">
               <p className="admin-login__label">Otras imágenes</p>

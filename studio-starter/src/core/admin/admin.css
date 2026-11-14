@@ -388,7 +388,8 @@ body {
   padding: 4px 0;
 }
 
-.admin-media-grid__item img {
+.admin-media-grid__item img,
+.admin-media-grid__item video {
   display: block;
   width: 100%;
   height: auto;

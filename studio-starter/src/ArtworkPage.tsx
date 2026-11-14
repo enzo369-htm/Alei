@@ -41,14 +41,27 @@ function interestLines(title: string, t: (key: CopyKey) => string) {
 
 type FrameSlide = {
   id: string
+  kind: 'image' | 'video'
   media: MediaRecord | null
   src: string
+  poster?: string
 }
 
 function frameSlides(piece: CanvasPiece): FrameSlide[] {
-  return (piece.slides ?? [])
+  const images = (piece.slides ?? [])
     .filter((slide): slide is PieceSlide => Boolean(slide.media?.url || slide.src))
-    .map((slide) => ({ id: slide.id, media: slide.media, src: slide.src }))
+    .map((slide) => ({ id: slide.id, kind: 'image' as const, media: slide.media, src: slide.src }))
+  if (!piece.video?.url) return images
+  return [
+    ...images,
+    {
+      id: `video-${piece.video.id}`,
+      kind: piece.video.mime === 'image/gif' ? 'image' : 'video',
+      media: piece.video,
+      src: piece.video.url,
+      poster: piece.media?.url || piece.src,
+    },
+  ]
 }
 
 type ImageMeasure = {
@@ -141,6 +154,16 @@ function WorkImage({
     }
   }, [piece.id])
 
+  function syncScrollIndex() {
+    if (!narrow) return
+    const track = trackRef.current
+    if (!track) return
+    const width = track.clientWidth
+    if (width < 1) return
+    const next = Math.min(slides.length - 1, Math.max(0, Math.round(track.scrollLeft / width)))
+    setIndex((current) => (current === next ? current : next))
+  }
+
   function step(delta: number) {
     if (slides.length < 2) return
     if (narrow) {
@@ -170,11 +193,14 @@ function WorkImage({
         <div
           className="artwork__track"
           ref={trackRef}
+          onScroll={syncScrollIndex}
           style={narrow ? undefined : { transform: `translateX(-${index * 100}%)` }}
         >
           {slides.map((slide, slideIndex) => (
             <div key={slide.id} className="artwork__slide">
-              {slide.media ? (
+              {slide.kind === 'video' ? (
+                <SlideVideo src={slide.src} poster={slide.poster} active={slideIndex === index} />
+              ) : slide.media ? (
                 <Picture
                   media={slide.media}
                   sizes="(max-width: 800px) 100vw, 58vw"
@@ -219,6 +245,42 @@ function letterInk(el: HTMLElement) {
     left: rect.left - metrics.actualBoundingBoxLeft,
     right: rect.left + metrics.actualBoundingBoxRight,
   }
+}
+
+function SlideVideo({ src, poster, active }: { src: string; poster?: string; active: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  const reduceMotion = useSyncExternalStore(
+    (onChange) => {
+      const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+      media.addEventListener('change', onChange)
+      return () => media.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false,
+  )
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    if (active && !reduceMotion) {
+      void node.play().catch(() => undefined)
+      return
+    }
+    node.pause()
+  }, [active, reduceMotion])
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      poster={poster || undefined}
+      controls
+      muted
+      loop
+      playsInline
+      preload="metadata"
+    />
+  )
 }
 
 function WorksSheet({ piece }: { piece: CanvasPiece }) {

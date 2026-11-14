@@ -159,6 +159,76 @@ test('PUT rechaza más fotos extra que el máximo', () => {
   assert.equal(parsed.ok, false)
 })
 
+test('PUT guarda el video de la ficha aparte de la foto del lienzo', () => {
+  const video = '00000000-0000-4000-8000-0000000000dd'
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [
+          {
+            mediaId: '00000000-0000-4000-8000-0000000000aa',
+            videoMediaId: video,
+            x: 10,
+            y: 12,
+            width: 20,
+          },
+        ],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  const piece = parsed.blocks[0]!.pieces[0]!
+  assert.equal(piece.mediaId, '00000000-0000-4000-8000-0000000000aa')
+  assert.equal(piece.videoMediaId, video)
+  assert.deepEqual(mediaIdsOf(parsed.blocks), ['00000000-0000-4000-8000-0000000000aa', video])
+})
+
+test('PUT sin videoMediaId no pisa el video ya guardado', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [{ mediaId: '00000000-0000-4000-8000-0000000000aa' }],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  assert.equal(parsed.blocks[0]!.pieces[0]!.videoMediaId, undefined)
+})
+
+test('PUT con videoMediaId null quita el video de la ficha', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [{ mediaId: '00000000-0000-4000-8000-0000000000aa', videoMediaId: null }],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, true)
+  if (!parsed.ok) return
+  assert.equal(parsed.blocks[0]!.pieces[0]!.videoMediaId, null)
+})
+
+test('PUT rechaza un videoMediaId que no es uuid', () => {
+  const parsed = parseCanvasPut(
+    [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        pieces: [{ mediaId: '00000000-0000-4000-8000-0000000000aa', videoMediaId: 'clip.mp4' }],
+      },
+    ],
+    known,
+  )
+  assert.equal(parsed.ok, false)
+})
+
 test('PUT guarda el inglés y deja vacío el que no viene', () => {
   const parsed = parseCanvasPut(
     [
