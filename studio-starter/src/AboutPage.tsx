@@ -36,7 +36,7 @@ function AboutBlockView({ block }: { block: AboutBlock }) {
   const body = textOf(block.body, block.bodyEn, lang)
   if (!bold.trim() && !plain.trim() && !body.trim()) return null
   return (
-    <section className="about-page__block">
+    <section className={block.kind === 'title' ? 'about-page__block about-page__block--lead' : 'about-page__block'}>
       {block.kind === 'title' && (bold.trim() || plain.trim()) ? (
         <h1 className="about-page__title">
           <span className="about-page__ink">
@@ -93,7 +93,7 @@ function fitBlockInk(root: HTMLElement) {
   }
 }
 
-function letterRight(el: HTMLElement) {
+function letterEdge(el: HTMLElement, edge: 'left' | 'right') {
   const style = getComputedStyle(el)
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
@@ -101,7 +101,8 @@ function letterRight(el: HTMLElement) {
   ctx.font = style.font
   ;(ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = style.letterSpacing
   const metrics = ctx.measureText(el.textContent ?? '')
-  return el.getBoundingClientRect().left + metrics.actualBoundingBoxRight
+  const left = el.getBoundingClientRect().left
+  return edge === 'left' ? left - metrics.actualBoundingBoxLeft : left + metrics.actualBoundingBoxRight
 }
 
 function AboutSheet({ page }: { page: PageRecord }) {
@@ -111,6 +112,7 @@ function AboutSheet({ page }: { page: PageRecord }) {
   const instagramUrl = instagramHref(instagram)
   const blocks = useMemo(() => parseAboutBlocks(page.body), [page.body])
   const [textEdge, setTextEdge] = useState<number | null>(null)
+  const [sideEdges, setSideEdges] = useState<{ left: number; right: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
 
   useLayoutEffect(() => {
@@ -119,11 +121,35 @@ function AboutSheet({ page }: { page: PageRecord }) {
 
   useEffect(() => {
     const align = () => {
-      if (sheetRef.current) fitBlockInk(sheetRef.current)
+      const sheet = sheetRef.current
+      if (sheet) fitBlockInk(sheet)
+      const mobile = window.matchMedia('(max-width: 800px)').matches
+      if (mobile && sheet) {
+        const alei = document.querySelector<HTMLElement>('.site-nav__brand')
+        const bars = document.querySelector<HTMLElement>('.site-nav__bars')
+        const inkLeft = alei ? letterEdge(alei, 'left') : null
+        const barsBox = bars?.getBoundingClientRect()
+        const box = sheet.getBoundingClientRect()
+        if (inkLeft == null || !barsBox || barsBox.width === 0) {
+          setSideEdges((current) => (current == null ? current : null))
+          return
+        }
+        const next = {
+          left: Math.max(0, inkLeft - box.left),
+          right: Math.max(0, box.right - barsBox.right),
+        }
+        setSideEdges((current) =>
+          current && Math.abs(current.left - next.left) < 0.1 && Math.abs(current.right - next.right) < 0.1
+            ? current
+            : next,
+        )
+        return
+      }
+      setSideEdges((current) => (current == null ? current : null))
       const about = document.querySelector<HTMLElement>('.site-nav a[href="/about"]')
-      const pageRight = sheetRef.current?.getBoundingClientRect().right
+      const pageRight = sheet?.getBoundingClientRect().right
       if (!about || pageRight == null) return
-      const right = letterRight(about)
+      const right = letterEdge(about, 'right')
       if (right == null) return
       const next = pageRight - right
       setTextEdge((current) => (current != null && Math.abs(current - next) < 0.1 ? current : next))
@@ -135,12 +161,24 @@ function AboutSheet({ page }: { page: PageRecord }) {
   }, [])
 
   return (
-    <article ref={sheetRef} className="about-page" style={textEdge != null ? { ['--text-edge' as string]: `${textEdge}px` } : undefined}>
+    <article
+      ref={sheetRef}
+      className="about-page"
+      style={{
+        ...(textEdge != null ? { ['--text-edge' as string]: `${textEdge}px` } : null),
+        ...(sideEdges
+          ? {
+              ['--about-edge-left' as string]: `${sideEdges.left}px`,
+              ['--about-edge-right' as string]: `${sideEdges.right}px`,
+            }
+          : null),
+      }}
+    >
       <div className="about-page__photo">
         {page.image ? (
           <Picture
             media={page.image}
-            sizes="(max-width: 800px) 37vw, 17vw"
+            sizes="(max-width: 800px) calc(100vw - 40px), 17vw"
             alt="alei"
             loading="eager"
           />
