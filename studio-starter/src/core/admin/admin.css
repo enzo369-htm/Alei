@@ -334,6 +334,48 @@ body {
   display: none;
 }
 
+.admin-hero-modes {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.admin-hero-modes .admin-btn.is-open:not(.is-on) {
+  border-color: var(--admin-ink);
+}
+
+.admin-hero-modes .admin-btn.is-on,
+.admin-hero-modes .admin-btn.is-on:disabled {
+  color: #ffffff;
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  opacity: 1;
+}
+
+.admin-hero-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--admin-ink);
+}
+
+.admin-hero-scale input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--admin-ink);
+}
+
+.admin-hero-fit__stage {
+  width: min(100%, 720px);
+  height: 360px;
+  margin: 0 0 12px;
+  border: 1px solid var(--admin-line);
+  background: #ffffff;
+}
+
 .admin-progress {
   margin: 0 0 22px;
   max-width: 420px;

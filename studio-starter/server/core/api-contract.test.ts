@@ -170,3 +170,13 @@ test('PUT /api/hero sin sesión es 401', async () => {
   const res = await core(new Request('http://localhost/api/hero', { method: 'PUT', body: '{}' }))
   assert.equal(res.status, 401)
 })
+
+test('PUT /api/hero/fit sin sesión es 401', async () => {
+  const res = await core(new Request('http://localhost/api/hero/fit', { method: 'PUT', body: '{}' }))
+  assert.equal(res.status, 401)
+})
+
+test('POST /api/hero/fit-file sin sesión es 401', async () => {
+  const res = await core(new Request('http://localhost/api/hero/fit-file', { method: 'POST' }))
+  assert.equal(res.status, 401)
+})

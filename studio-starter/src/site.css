@@ -138,6 +138,25 @@ body,
   object-fit: contain;
 }
 
+.hero-fit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.hero-fit__media {
+  display: block;
+  width: calc(var(--hero-fit-scale) * 1%);
+  height: calc(var(--hero-fit-scale) * 1%);
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
+
 .site .canvas-page,
 .site .page-view,
 .site .artwork {

@@ -113,7 +113,7 @@ export function AdminMedia() {
       <ul className="admin-media-grid">
         {items.map((item) => (
           <li key={item.id} className="admin-media-grid__item">
-            {item.mime === 'video/mp4' ? (
+            {item.mime?.startsWith('video/') ? (
               <video src={item.url} muted playsInline preload="metadata" />
             ) : (
               <Picture media={item} sizes="220px" alt="" />
