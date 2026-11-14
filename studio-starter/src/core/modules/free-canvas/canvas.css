@@ -327,6 +327,10 @@
   opacity: 1;
 }
 
+.studio-viewer__mobile > .studio-viewer__frame:first-child .studio-viewer__meta {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .studio-viewer__mobile .studio-viewer__meta {
     transition: none;
