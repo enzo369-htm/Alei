@@ -58,6 +58,11 @@ test('POST /api/media sin sesión es 401', async () => {
   assert.equal(res.status, 401)
 })
 
+test('POST /api/media/video sin sesión es 401', async () => {
+  const res = await core(new Request('http://localhost/api/media/video', { method: 'POST' }))
+  assert.equal(res.status, 401)
+})
+
 test('DELETE /api/media/:id sin sesión es 401', async () => {
   const res = await core(
     new Request('http://localhost/api/media/00000000-0000-4000-8000-000000000001', {
