@@ -244,6 +244,8 @@ body,
   }
 
   .hero {
+    height: calc(100% - 16px);
+    margin-top: 16px;
     cursor: grab;
     touch-action: none;
     -webkit-touch-callout: none;
