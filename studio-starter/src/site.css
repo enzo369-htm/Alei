@@ -244,6 +244,8 @@ body,
   }
 
   .hero {
+    height: calc(100% - 12px);
+    margin-top: 12px;
     cursor: grab;
     touch-action: none;
     -webkit-touch-callout: none;
@@ -261,7 +263,7 @@ body,
     position: relative;
     z-index: 1;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: flex-end;
     width: 44px;
     height: 32px;
