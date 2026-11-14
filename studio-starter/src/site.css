@@ -585,6 +585,7 @@ body,
 .artwork--works .artwork__mail {
   color: #000000;
   font-size: 12px;
+  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {
