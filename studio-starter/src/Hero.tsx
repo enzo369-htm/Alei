@@ -149,12 +149,87 @@ export function Hero({ src }: { src: string }) {
     originX: number
     originY: number
   } | null>(null)
+  const shiftRef = useRef({ x: 0, y: 0, ready: false })
+  const boundsRef = useRef({ overflowX: 0, overflowY: 0 })
+  const samplesRef = useRef<{ x: number; y: number; t: number }[]>([])
+  const glideRef = useRef(0)
   const current = flowerSrc(step)
   const size = paintedSize(frame, natural)
   const overflowX = size ? Math.max(0, size.w - frame.w) : 0
   const overflowY = size ? Math.max(0, size.h - frame.h) : 0
   const shiftX = size ? -pan.x * overflowX : 0
   const shiftY = size ? -pan.y * overflowY : 0
+  boundsRef.current = { overflowX, overflowY }
+
+  function stopGlide() {
+    if (!glideRef.current) return
+    cancelAnimationFrame(glideRef.current)
+    glideRef.current = 0
+  }
+
+  function placeShift(x: number, y: number) {
+    const { overflowX: maxX, overflowY: maxY } = boundsRef.current
+    const nextX = clamp(x, -maxX, 0)
+    const nextY = clamp(y, -maxY, 0)
+    shiftRef.current = { x: nextX, y: nextY, ready: true }
+    setPan({
+      x: maxX ? -nextX / maxX : 0.5,
+      y: maxY ? -nextY / maxY : 0.5,
+    })
+    return { x: nextX, y: nextY, hitX: nextX !== x, hitY: nextY !== y }
+  }
+
+  function rememberSample(x: number, y: number) {
+    const now = performance.now()
+    const samples = samplesRef.current
+    samples.push({ x, y, t: now })
+    const cutoff = now - 80
+    while (samples.length > 2 && samples[0].t < cutoff) samples.shift()
+  }
+
+  function releaseVelocity() {
+    const samples = samplesRef.current
+    const last = samples.at(-1)
+    if (!last || samples.length < 2) return { x: 0, y: 0 }
+    let earlier = samples[0]
+    for (let index = samples.length - 2; index >= 0; index -= 1) {
+      if (last.t - samples[index].t >= 16) {
+        earlier = samples[index]
+        break
+      }
+    }
+    const dt = last.t - earlier.t
+    if (dt < 8) return { x: 0, y: 0 }
+    return {
+      x: clamp((last.x - earlier.x) / dt, -1.1, 1.1),
+      y: clamp((last.y - earlier.y) / dt, -1.1, 1.1),
+    }
+  }
+
+  function glide(vx: number, vy: number) {
+    stopGlide()
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let last = performance.now()
+    let traveled = 0
+    const step = (now: number) => {
+      const dt = Math.min(34, now - last)
+      last = now
+      const decay = Math.exp(-dt / 150)
+      vx *= decay
+      vy *= decay
+      const current = shiftRef.current
+      const moved = placeShift(current.x + vx * dt, current.y + vy * dt)
+      if (moved.hitX) vx = 0
+      if (moved.hitY) vy = 0
+      traveled += Math.hypot(vx * dt, vy * dt)
+      if (Math.hypot(vx, vy) < 0.05 || traveled > 170) {
+        glideRef.current = 0
+        return
+      }
+      glideRef.current = requestAnimationFrame(step)
+    }
+    glideRef.current = requestAnimationFrame(step)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -178,9 +253,16 @@ export function Hero({ src }: { src: string }) {
 
   useEffect(() => {
     if (narrow) setCursor(null)
+    else stopGlide()
   }, [narrow])
 
   useEffect(() => {
+    return () => stopGlide()
+  }, [])
+
+  useEffect(() => {
+    stopGlide()
+    shiftRef.current.ready = false
     setPan({ x: 0.5, y: 0.5 })
     const img = paintingRef.current
     if (img?.complete) rememberSize(img, setNatural)
@@ -199,13 +281,16 @@ export function Hero({ src }: { src: string }) {
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (!narrow || !size) return
+    stopGlide()
+    const origin = shiftRef.current.ready ? shiftRef.current : { x: shiftX, y: shiftY }
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      originX: shiftX,
-      originY: shiftY,
+      originX: origin.x,
+      originY: origin.y,
     }
+    samplesRef.current = [{ x: event.clientX, y: event.clientY, t: performance.now() }]
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
     } catch {
@@ -216,20 +301,19 @@ export function Hero({ src }: { src: string }) {
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const drag = dragRef.current
     if (!narrow || !drag || drag.pointerId !== event.pointerId) return
-    const nextX = clamp(drag.originX + (event.clientX - drag.startX), -overflowX, 0)
-    const nextY = clamp(drag.originY + (event.clientY - drag.startY), -overflowY, 0)
-    setPan({
-      x: overflowX ? -nextX / overflowX : 0.5,
-      y: overflowY ? -nextY / overflowY : 0.5,
-    })
+    rememberSample(event.clientX, event.clientY)
+    placeShift(drag.originX + (event.clientX - drag.startX), drag.originY + (event.clientY - drag.startY))
   }
 
   function handlePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return
+    rememberSample(event.clientX, event.clientY)
     dragRef.current = null
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
+    const velocity = releaseVelocity()
+    if (Math.hypot(velocity.x, velocity.y) >= 0.12) glide(velocity.x, velocity.y)
   }
 
   function handleClick(event: React.MouseEvent<HTMLDivElement>) {
