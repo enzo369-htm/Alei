@@ -843,6 +843,10 @@ body,
     order: 1;
   }
 
+  .about-page__block--lead .about-page__bio {
+    margin-top: 11px;
+  }
+
   .about-page__photo {
     order: 2;
     width: 100%;
