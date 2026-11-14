@@ -12,12 +12,17 @@ export type MediaVariants = {
   widths: MediaVariant[]
 }
 
+export type VideoVariants = {
+  format: 'mp4' | 'gif'
+  duration: number
+}
+
 export type MediaRecord = {
   id: string
   url: string
   width: number | null
   height: number | null
   mime: string | null
-  variants: MediaVariants | Record<string, never>
+  variants: MediaVariants | VideoVariants | Record<string, never>
   createdAt?: string
 }

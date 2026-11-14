@@ -474,6 +474,34 @@
   width: max-content;
 }
 
+.admin-piece-video {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-piece-video__where,
+.admin-piece-video__limits {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+  color: var(--admin-muted, #6b675f);
+}
+
+.admin-piece-video__preview {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  background: #ffffff;
+}
+
 .admin-piece-slides {
   grid-column: 1 / -1;
   display: flex;

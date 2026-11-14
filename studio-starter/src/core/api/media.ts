@@ -23,6 +23,43 @@ export type UploadProgress = {
  * Sube las variantes ya preparadas. Usa XHR para poder mostrar % real;
  * fetch no expone el progreso del body.
  */
+export function apiUploadVideo(file: File, onProgress?: (progress: UploadProgress) => void): Promise<MediaRecord> {
+  const body = new FormData()
+  body.set('file', file)
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', '/api/media/video')
+    xhr.withCredentials = true
+    xhr.responseType = 'text'
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return
+      onProgress?.({
+        stage: 'upload',
+        percent: Math.round((event.loaded / event.total) * 100),
+      })
+    }
+    xhr.onload = () => {
+      let data: MediaRecord & { error?: string } = {} as MediaRecord
+      if (xhr.responseText) {
+        try {
+          data = JSON.parse(xhr.responseText) as MediaRecord & { error?: string }
+        } catch {
+          reject(new Error(xhr.responseText.slice(0, 180) || `Error ${xhr.status}`))
+          return
+        }
+      }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(data.error || `Error ${xhr.status}`))
+        return
+      }
+      resolve(data)
+    }
+    xhr.onerror = () => reject(new Error('No se pudo subir el video'))
+    xhr.send(body)
+  })
+}
+
 export function apiUploadMedia(
   prepared: PreparedVariants,
   onProgress?: (progress: UploadProgress) => void,

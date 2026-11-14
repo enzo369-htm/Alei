@@ -27,6 +27,8 @@ export type CanvasPiece = {
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]
+  videoMediaId: string | null
+  video: MediaRecord | null
 }
 
 export type CanvasBlock = {

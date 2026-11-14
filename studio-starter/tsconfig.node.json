@@ -24,6 +24,7 @@
     "api/**/*.ts",
     "modules/**/api/*.ts",
     "src/core/images/readImageSize.ts",
-    "src/core/images/types.ts"
+    "src/core/images/types.ts",
+    "src/core/video/inspectMp4.ts"
   ]
 }

@@ -54,6 +54,12 @@ type PlacementRow = {
   mime: string | null
   variants: unknown
   slides?: unknown
+  video_media_id?: string | null
+  video_url?: string | null
+  video_width?: number | null
+  video_height?: number | null
+  video_mime?: string | null
+  video_variants?: unknown
 }
 
 export type PieceSlide = {
@@ -80,6 +86,8 @@ export type CanvasPiece = {
   availability: PieceAvailability
   media: MediaRecord | null
   slides: PieceSlide[]
+  videoMediaId: string | null
+  video: MediaRecord | null
 }
 
 export type CanvasBlock = {
@@ -150,6 +158,20 @@ function pieceOf(row: PlacementRow): CanvasPiece {
     availability: row.availability === 'sold' ? 'sold' : 'available',
     media,
     slides: slidesFrom(row.slides),
+    videoMediaId: row.video_media_id ?? null,
+    video: videoOf(row),
+  }
+}
+
+function videoOf(row: PlacementRow): MediaRecord | null {
+  if (!row.video_media_id || !row.video_url) return null
+  return {
+    id: row.video_media_id,
+    url: row.video_url,
+    width: row.video_width ?? null,
+    height: row.video_height ?? null,
+    mime: row.video_mime ?? null,
+    variants: (row.video_variants as MediaRecord['variants']) ?? {},
   }
 }
 
@@ -201,6 +223,8 @@ async function loadScope(scope: string, withSlides: boolean) {
           p.title, p.title_en, p.ficha, p.ficha_en, p.piece_text, p.piece_text_en, p.availability,
           m.url, m.width as media_width, m.height as media_height,
           m.mime, m.variants,
+          p.video_media_id, v.url as video_url, v.width as video_width, v.height as video_height,
+          v.mime as video_mime, v.variants as video_variants,
           (
             select coalesce(
               json_agg(
@@ -223,6 +247,7 @@ async function loadScope(scope: string, withSlides: boolean) {
           ) as slides
         from canvas_placements p
         join media m on m.id = p.media_id
+        left join media v on v.id = p.video_media_id
         join canvases c on c.id = p.canvas_id
         where c.scope = ${scope}
         order by p.z_index, p.created_at
@@ -232,9 +257,12 @@ async function loadScope(scope: string, withSlides: boolean) {
           p.id, p.canvas_id, p.media_id, p.x, p.y, p.width, p.z_index,
           p.title, p.title_en, p.ficha, p.ficha_en, p.piece_text, p.piece_text_en, p.availability,
           m.url, m.width as media_width, m.height as media_height,
-          m.mime, m.variants
+          m.mime, m.variants,
+          p.video_media_id, v.url as video_url, v.width as video_width, v.height as video_height,
+          v.mime as video_mime, v.variants as video_variants
         from canvas_placements p
         join media m on m.id = p.media_id
+        left join media v on v.id = p.video_media_id
         join canvases c on c.id = p.canvas_id
         where c.scope = ${scope}
         order by p.z_index, p.created_at
@@ -293,7 +321,11 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
           ficha_en = ${piece.fichaEn},
           piece_text = ${piece.text},
           piece_text_en = ${piece.textEn},
-          availability = ${piece.availability}
+          availability = ${piece.availability},
+          video_media_id = case
+            when ${piece.videoMediaId !== undefined} then ${piece.videoMediaId ?? null}::uuid
+            else video_media_id
+          end
         where id = ${piece.id} and canvas_id = ${block.id}
       `
       kept.add(piece.id)
@@ -301,11 +333,12 @@ async function replacePlacements(db: ReturnType<typeof sql>, block: ParsedBlock)
     } else {
       const inserted = (await db`
         insert into canvas_placements (
-          canvas_id, media_id, x, y, width, z_index, title, title_en, ficha, ficha_en, piece_text, piece_text_en, availability
+          canvas_id, media_id, x, y, width, z_index, title, title_en, ficha, ficha_en, piece_text, piece_text_en, availability, video_media_id
         )
         values (
           ${block.id}, ${piece.mediaId}, ${piece.x}, ${piece.y}, ${piece.width}, ${z},
-          ${piece.title}, ${piece.titleEn}, ${piece.ficha}, ${piece.fichaEn}, ${piece.text}, ${piece.textEn}, ${piece.availability}
+          ${piece.title}, ${piece.titleEn}, ${piece.ficha}, ${piece.fichaEn}, ${piece.text}, ${piece.textEn}, ${piece.availability},
+          ${piece.videoMediaId ?? null}::uuid
         )
         returning id
       `) as { id: string }[]
@@ -380,8 +413,18 @@ export const canvasRoutes = [
     if (!parsed.ok) return fail(400, parsed.error)
 
     for (const mediaId of mediaIdsOf(parsed.blocks)) {
-      const found = (await db`select id from media where id = ${mediaId}`) as { id: string }[]
+      const found = (await db`select id, mime from media where id = ${mediaId}`) as { id: string; mime: string | null }[]
       if (!found[0]) return fail(400, 'mediaId inválido')
+    }
+
+    for (const block of parsed.blocks) {
+      for (const piece of block.pieces) {
+        if (!piece.videoMediaId) continue
+        const found = (await db`select mime from media where id = ${piece.videoMediaId}`) as { mime: string | null }[]
+        if (found[0]?.mime !== 'video/mp4' && found[0]?.mime !== 'image/gif') {
+          return fail(400, 'El archivo no es un MP4 ni un GIF')
+        }
+      }
     }
 
     let sortOrder = 0
