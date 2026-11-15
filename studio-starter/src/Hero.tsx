@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 /** Todas se igualan al mismo alto de dibujo, sea cual sea el margen del PNG. */
 const FLOWERS = [
@@ -32,6 +32,90 @@ function useNarrow() {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
+}
+
+/** Cuánto tarda el cuadro en frenar después de soltar. Más alto = sigue más. */
+const GLIDE_TAU = 380
+/** Tope de la velocidad del desliz, igual en cualquier dirección. */
+const GLIDE_SPEED = 1.6
+
+type Sample = { x: number; y: number; t: number }
+
+function capVelocity(x: number, y: number) {
+  const speed = Math.hypot(x, y)
+  if (speed <= GLIDE_SPEED || speed === 0) return { x, y }
+  const scale = GLIDE_SPEED / speed
+  return { x: x * scale, y: y * scale }
+}
+
+/**
+ * La velocidad es la del desliz, no la del instante en que el dedo se levanta.
+ * Ese último tramo casi siempre frena y, si se usa, a veces el cuadro se para en seco.
+ */
+function swipeVelocity(samples: Sample[]) {
+  if (samples.length < 2) return { x: 0, y: 0 }
+  const releaseT = samples[samples.length - 1].t
+  let end = samples.length - 1
+  while (end > 0) {
+    const previous = samples[end - 1]
+    const point = samples[end]
+    const dt = point.t - previous.t
+    const speed = dt > 0 ? Math.hypot(point.x - previous.x, point.y - previous.y) / dt : 0
+    if (speed > 0.05) break
+    end -= 1
+  }
+  if (end < 1) return { x: 0, y: 0 }
+  const age = releaseT - samples[end].t
+  if (age > 100) return { x: 0, y: 0 }
+
+  const last = samples[end]
+  const windowStart = last.t - 110
+  const segments: { x: number; y: number; dt: number; t: number }[] = []
+  for (let index = 1; index <= end; index += 1) {
+    const previous = samples[index - 1]
+    const point = samples[index]
+    const dt = point.t - previous.t
+    if (dt < 2 || point.t < windowStart) continue
+    segments.push({
+      x: (point.x - previous.x) / dt,
+      y: (point.y - previous.y) / dt,
+      dt,
+      t: point.t,
+    })
+  }
+  if (segments.length === 0) return { x: 0, y: 0 }
+
+  let peak = 0
+  for (const segment of segments) peak = Math.max(peak, Math.hypot(segment.x, segment.y))
+  const moving = segments.filter((segment) => Math.hypot(segment.x, segment.y) >= peak * 0.55)
+  const used = moving.length > 0 ? moving : segments
+
+  let vx = 0
+  let vy = 0
+  let weight = 0
+  for (const segment of used) {
+    const recency = Math.exp(-(last.t - segment.t) / 70)
+    const w = recency * segment.dt
+    vx += segment.x * w
+    vy += segment.y * w
+    weight += w
+  }
+  if (weight <= 0) return { x: 0, y: 0 }
+  const fade = age <= 40 ? 1 : Math.exp(-(age - 40) / 45)
+  return capVelocity((vx / weight) * fade, (vy / weight) * fade)
+}
+
+function roomToward(position: number, velocity: number, limit: number) {
+  if (velocity > 0) return -position
+  if (velocity < 0) return limit + position
+  return Number.POSITIVE_INFINITY
+}
+
+/** Si no queda tanto cuadro, frena con la misma curva en vez de cortar contra el borde. */
+function fitEdge(velocity: number, room: number) {
+  if (!(room > 0)) return 0
+  const limit = room / GLIDE_TAU
+  return Math.abs(velocity) <= limit ? velocity : Math.sign(velocity) * limit
 }
 
 function flowerSrc(step: number) {
@@ -167,63 +251,60 @@ export function Hero({ src }: { src: string }) {
     glideRef.current = 0
   }
 
+  function paintShift(x: number, y: number) {
+    const stage = paintingRef.current?.parentElement
+    if (stage) stage.style.transform = `translate3d(${x}px, ${y}px, 0)`
+  }
+
   function placeShift(x: number, y: number) {
     const { overflowX: maxX, overflowY: maxY } = boundsRef.current
     const nextX = clamp(x, -maxX, 0)
     const nextY = clamp(y, -maxY, 0)
     shiftRef.current = { x: nextX, y: nextY, ready: true }
-    const stage = paintingRef.current?.parentElement
-    if (stage) stage.style.transform = `translate(${nextX}px, ${nextY}px)`
-    setPan({
-      x: maxX ? -nextX / maxX : 0.5,
-      y: maxY ? -nextY / maxY : 0.5,
-    })
+    paintShift(nextX, nextY)
     return { x: nextX, y: nextY, hitX: nextX !== x, hitY: nextY !== y }
   }
 
-  function rememberSample(x: number, y: number) {
-    const now = performance.now()
-    const samples = samplesRef.current
-    samples.push({ x, y, t: now })
-    const cutoff = now - 80
-    while (samples.length > 2 && samples[0].t < cutoff) samples.shift()
+  function commitShift() {
+    const { overflowX: maxX, overflowY: maxY } = boundsRef.current
+    const { x, y } = shiftRef.current
+    setPan({
+      x: maxX ? -x / maxX : 0.5,
+      y: maxY ? -y / maxY : 0.5,
+    })
   }
 
-  function releaseVelocity() {
+  function rememberSample(x: number, y: number, t = performance.now()) {
     const samples = samplesRef.current
-    const last = samples.at(-1)
-    if (!last || samples.length < 2) return { x: 0, y: 0 }
-    let earlier = samples[0]
-    for (let index = samples.length - 2; index >= 0; index -= 1) {
-      if (last.t - samples[index].t >= 16) {
-        earlier = samples[index]
-        break
-      }
-    }
-    const dt = last.t - earlier.t
-    if (dt < 8) return { x: 0, y: 0 }
-    return {
-      x: clamp((last.x - earlier.x) / dt, -1.6, 1.6),
-      y: clamp((last.y - earlier.y) / dt, -1.6, 1.6),
-    }
+    const time = t > 0 ? t : performance.now()
+    samples.push({ x, y, t: time })
+    const cutoff = time - 160
+    while (samples.length > 2 && samples[0].t < cutoff) samples.shift()
   }
 
   function glide(vx: number, vy: number) {
     stopGlide()
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      commitShift()
+      return
+    }
     let last = performance.now()
     const step = (now: number) => {
       const dt = Math.min(32, now - last)
       last = now
       const current = shiftRef.current
+      const { overflowX: maxX, overflowY: maxY } = boundsRef.current
+      vx = fitEdge(vx, roomToward(current.x, vx, maxX))
+      vy = fitEdge(vy, roomToward(current.y, vy, maxY))
       const moved = placeShift(current.x + vx * dt, current.y + vy * dt)
       if (moved.hitX) vx = 0
       if (moved.hitY) vy = 0
-      const decay = Math.exp(-dt / 380)
+      const decay = Math.exp(-dt / GLIDE_TAU)
       vx *= decay
       vy *= decay
-      if (Math.hypot(vx, vy) < 0.018) {
+      if (Math.hypot(vx, vy) < 0.008) {
         glideRef.current = 0
+        commitShift()
         return
       }
       glideRef.current = requestAnimationFrame(step)
@@ -251,9 +332,17 @@ export function Hero({ src }: { src: string }) {
     return () => observer.disconnect()
   }, [])
 
+  useLayoutEffect(() => {
+    if (!shiftRef.current.ready) return
+    paintShift(shiftRef.current.x, shiftRef.current.y)
+  })
+
   useEffect(() => {
     if (narrow) setCursor(null)
-    else stopGlide()
+    else {
+      stopGlide()
+      shiftRef.current.ready = false
+    }
   }, [narrow])
 
   useEffect(() => {
@@ -290,7 +379,7 @@ export function Hero({ src }: { src: string }) {
       originX: origin.x,
       originY: origin.y,
     }
-    samplesRef.current = [{ x: event.clientX, y: event.clientY, t: performance.now() }]
+    samplesRef.current = [{ x: event.clientX, y: event.clientY, t: event.timeStamp || performance.now() }]
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
     } catch {
@@ -301,19 +390,22 @@ export function Hero({ src }: { src: string }) {
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const drag = dragRef.current
     if (!narrow || !drag || drag.pointerId !== event.pointerId) return
-    rememberSample(event.clientX, event.clientY)
+    const points = event.nativeEvent.getCoalescedEvents?.() ?? []
+    if (points.length === 0) rememberSample(event.clientX, event.clientY, event.timeStamp)
+    else for (const point of points) rememberSample(point.clientX, point.clientY, point.timeStamp)
     placeShift(drag.originX + (event.clientX - drag.startX), drag.originY + (event.clientY - drag.startY))
   }
 
   function handlePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return
-    rememberSample(event.clientX, event.clientY)
+    rememberSample(event.clientX, event.clientY, event.timeStamp)
     dragRef.current = null
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
-    const velocity = releaseVelocity()
-    if (Math.hypot(velocity.x, velocity.y) >= 0.12) glide(velocity.x, velocity.y)
+    const velocity = swipeVelocity(samplesRef.current)
+    if (Math.hypot(velocity.x, velocity.y) >= 0.05) glide(velocity.x, velocity.y)
+    else commitShift()
   }
 
   function handleClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -353,7 +445,7 @@ export function Hero({ src }: { src: string }) {
         className="hero__stage"
         style={
           size
-            ? { width: size.w, height: size.h, transform: `translate(${shiftX}px, ${shiftY}px)` }
+            ? { width: size.w, height: size.h, transform: `translate3d(${shiftX}px, ${shiftY}px, 0)` }
             : { visibility: 'hidden' }
         }
       >

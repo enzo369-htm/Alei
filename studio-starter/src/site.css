@@ -268,6 +268,10 @@ body,
     -webkit-touch-callout: none;
   }
 
+  .hero__stage {
+    will-change: transform;
+  }
+
   .hero__painting {
     cursor: grab;
   }
@@ -627,7 +631,7 @@ body,
     grid-template-areas:
       'image'
       'copy';
-    padding: 10px var(--site-gutter) 80px;
+    padding: 10px var(--site-gutter) 96px;
     row-gap: 4.34px;
   }
 
@@ -688,12 +692,15 @@ body,
 
   .artwork--works .artwork__foot,
   .artwork--works.artwork--placed .artwork__foot {
-    position: static;
+    position: fixed;
+    z-index: 20;
     top: auto;
-    left: auto;
-    margin-top: 28px;
-    margin-left: 0;
-    background: transparent;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    padding: 6px 20px 52px;
+    background: #ffffff;
   }
 }
 
@@ -899,7 +906,7 @@ body,
     justify-content: space-between;
     gap: 16px;
     width: 100%;
-    margin-top: 28px;
+    margin-top: 56px;
   }
 
   .about-page__mail {

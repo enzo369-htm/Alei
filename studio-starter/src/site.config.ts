@@ -15,7 +15,7 @@ export const site = {
   adminLinks: [
     { to: '/admin/hero', label: 'Hero' },
     { to: '/admin/works', label: 'Works' },
-    { to: '/admin/colabs', label: 'Other.W' },
+    { to: '/admin/colabs', label: 'Projects' },
     { to: '/admin/about', label: 'About' },
   ] as AdminLink[],
 }

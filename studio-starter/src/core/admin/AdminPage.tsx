@@ -12,7 +12,7 @@ function AdminEmptyState() {
     <main className="admin-page">
       <h1 className="admin-page__title">Admin</h1>
       <p className="admin-page__copy">
-        Hero, Works, Other.W y About.
+        Hero, Works, Projects y About.
       </p>
       {site.adminLinks.length === 0 && (
         <p className="admin-page__hint">Sin secciones registradas.</p>
@@ -29,7 +29,7 @@ export function AdminPage() {
           <Route index element={<AdminEmptyState />} />
           <Route path="hero" element={<AdminHero />} />
           <Route path="works" element={<AdminCanvas scope="works" heading="Works" />} />
-          <Route path="colabs" element={<AdminCanvas scope="colabs" heading="Other.W" />} />
+          <Route path="colabs" element={<AdminCanvas scope="colabs" heading="Projects" />} />
           <Route path="about" element={<AdminAboutEditor />} />
         </Route>
       </Route>
