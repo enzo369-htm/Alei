@@ -613,6 +613,20 @@ body,
   font-size: 12px;
 }
 
+.artwork--works .artwork__acquire {
+  color: #000000;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.artwork--works .artwork__acquire + .artwork__mail {
+  margin-left: 10px;
+}
+
 .artwork--works .artwork__mail {
   color: #000000;
   font-size: 12px;

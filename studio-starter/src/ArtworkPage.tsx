@@ -283,7 +283,7 @@ function SlideVideo({ src, poster, active }: { src: string; poster?: string; act
   )
 }
 
-function WorksSheet({ piece }: { piece: CanvasPiece }) {
+function WorksSheet({ piece, scope }: { piece: CanvasPiece; scope: string }) {
   const { lang, t } = useLocale()
   const title = textOf(piece.title, piece.titleEn, lang)
   const sheet = textOf(piece.ficha, piece.fichaEn, lang)
@@ -347,9 +347,12 @@ function WorksSheet({ piece }: { piece: CanvasPiece }) {
           {sold ? (
             <span className="artwork__status">{t('sold')}</span>
           ) : (
-            <a className="artwork__mail" href={mailHref(email, interest.subject, interest.body)} target="_blank" rel="noopener noreferrer">
-              {email}
-            </a>
+            <>
+              {scope === 'works' ? <span className="artwork__acquire">{t('acquire')}</span> : null}
+              <a className="artwork__mail" href={mailHref(email, interest.subject, interest.body)} target="_blank" rel="noopener noreferrer">
+                {email}
+              </a>
+            </>
           )}
         </p>
       </div>
@@ -397,7 +400,7 @@ export function ArtworkPage({ scope, label }: { scope: string; label: string }) 
     )
   }
 
-  if (scope === 'works' || scope === 'colabs') return <WorksSheet piece={piece} />
+  if (scope === 'works' || scope === 'colabs') return <WorksSheet piece={piece} scope={scope} />
 
   const title = textOf(piece.title, piece.titleEn, lang)
   const ficha = textOf(piece.ficha, piece.fichaEn, lang)
