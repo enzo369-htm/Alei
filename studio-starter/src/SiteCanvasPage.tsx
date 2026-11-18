@@ -46,8 +46,10 @@ export function SiteCanvasPage({ scope }: { scope: string }) {
   const [loaded, setLoaded] = useState(false)
   const [edges, setEdges] = useState<{ left: number; right: number } | null>(null)
 
+  const inkEdges = scope === 'works' || scope === 'colabs'
+
   useLayoutEffect(() => {
-    if (scope !== 'works') return
+    if (!inkEdges) return
     const align = () => {
       const page = pageRef.current
       const alei = document.querySelector<HTMLElement>('.site-nav__brand')
@@ -69,7 +71,7 @@ export function SiteCanvasPage({ scope }: { scope: string }) {
     window.addEventListener('resize', align)
     void document.fonts?.ready.then(align)
     return () => window.removeEventListener('resize', align)
-  }, [scope])
+  }, [inkEdges])
 
   useEffect(() => {
     setBlocks([])
@@ -84,9 +86,9 @@ export function SiteCanvasPage({ scope }: { scope: string }) {
   return (
     <div
       ref={pageRef}
-      className={scope === 'works' ? 'canvas-page canvas-page--works' : 'canvas-page'}
+      className={inkEdges ? 'canvas-page canvas-page--works' : 'canvas-page'}
       style={
-        scope === 'works' && edges
+        inkEdges && edges
           ? {
               ['--canvas-edge-left' as string]: `${edges.left}px`,
               ['--canvas-edge-right' as string]: `${edges.right}px`,
